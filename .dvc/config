@@ -1,0 +1,8 @@
+[core]
+    remote = storage
+    autostage = true
+['remote "storage"']
+    # 로컬 MinIO (docker compose). AWS S3 를 쓰면 endpointurl 을 지우고 url 만 바꾼다:
+    #   dvc remote modify storage url s3://<bucket>/rtls-foresight && dvc remote modify --unset storage endpointurl
+    url = s3://dvc/rtls-foresight
+    endpointurl = http://localhost:9000

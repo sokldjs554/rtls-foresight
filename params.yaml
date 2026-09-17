@@ -1,0 +1,11 @@
+# DVC 파이프라인 파라미터 (dvc.yaml 의 stage 들이 참조). Hydra 설정과 겹치는 값은 여기서 오버라이드로 넘긴다.
+seed: 0
+train: paper          # paper | fast | smoke
+rtls:
+  profile: small      # smoke | small | full
+  train_skip: 4
+  d_safe: 1.0
+  transfer_limit_scenes: 60000
+  eval_every: 10
+export:
+  int8: true

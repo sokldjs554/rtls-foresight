@@ -1,0 +1,5 @@
+20:40:38 INFO foresight.cli: official-eth: bo20 0.752/1.349 det 1.022/1.961 cvm 1.332/2.609
+20:41:37 INFO foresight.cli: collision official-eth     AP 0.051 AUROC 0.830 bestF1 0.052 @0.70 (P 0.03 R 0.39 lead 1.25s)
+20:41:37 INFO foresight.cli: collision official-eth_det AP 0.022 AUROC 0.712 bestF1 0.044 @0.10 (P 0.02 R 0.44 lead 1.30s)
+20:41:37 INFO foresight.cli: collision geofence         AP 0.253 AUROC 0.930 bestF1 0.243 @r<1.0m (P 0.68 R 0.15 lead 0.42s)
+20:41:37 INFO foresight.cli: collision cvm              AP 0.098 AUROC 0.839 bestF1 0.075 @0.70 (P 0.04 R 0.28 lead 0.95s)

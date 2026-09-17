@@ -1,0 +1,24 @@
+# Render Blueprint — 카드 없이 공개 데모를 올리는 경로 (이전 프로젝트들과 같은 선택).
+#
+# 대가를 분명히 적어 둔다:
+#   · Free 인스턴스는 15분 무접속이면 내려가고, 다시 뜨는 데 1분 + 앱 기동(ONNX 세션 로드 수 초)이 걸린다.
+#   · 0.1 vCPU 라 여기서 잰 지연(1 스레드 1~3 ms)은 그대로 나오지 않는다. 링크가 살아 있고 /docs 로 계약을 보여주는 용도다.
+#   · 면접 자리에서는 로컬 `make serve` 가 훨씬 낫다.
+#
+# 사용법: Render 대시보드 → New → Blueprint → 이 저장소 연결.
+services:
+  - type: web
+    name: rtls-foresight
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: FORESIGHT_BACKEND
+        value: onnx
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: PORT
+        value: "8000"

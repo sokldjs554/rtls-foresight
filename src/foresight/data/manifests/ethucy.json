@@ -1,0 +1,601 @@
+{
+ "source_repo": "https://github.com/abduallahmohamed/Social-STGCNN",
+ "source_commit": "master (2020-06 snapshot; identical to Social-GAN splits)",
+ "base_url": "https://raw.githubusercontent.com/abduallahmohamed/Social-STGCNN/master/datasets/{split}/{subset}/{file}",
+ "format": "frame_id<TAB>ped_id<TAB>x<TAB>y  (미터 단위, 2.5 fps = 0.4 s 간격)",
+ "license": "Social-STGCNN repo: MIT. 원 데이터: ETH(BIWI, Pellegrini et al. 2009) / UCY(Lerner et al. 2007) 연구용",
+ "files": [
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "biwi_hotel_train.txt",
+   "sha256": "f3f485043273e3d972efd73770df0021ec7d3d5135f60d2e2ca5809f68d6f104",
+   "bytes": 117490,
+   "lines": 4946
+  },
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "crowds_zara01_train.txt",
+   "sha256": "5b2ff1a334f4b3e8595e0ee898874b1795561db7bde97e90cbc4a1382c8c3d56",
+   "bytes": 171116,
+   "lines": 4307
+  },
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "crowds_zara02_train.txt",
+   "sha256": "9fd606341135d7d211c3af259c9eb2c25e4c7035efc43d3007ceeef6f954b247",
+   "bytes": 306018,
+   "lines": 7621
+  },
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "crowds_zara03_train.txt",
+   "sha256": "d38a0a6cd1e24adadbb3b15cac97b747e5c6ace2c59d457d805f38a4d91d5a03",
+   "bytes": 146945,
+   "lines": 3708
+  },
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "students001_train.txt",
+   "sha256": "f41a0a63301e1c15104205c4a1540db477ddc3330ee2801a976d7b9fc238a63e",
+   "bytes": 738442,
+   "lines": 18353
+  },
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "students003_train.txt",
+   "sha256": "85fe6324e9a0b94acb21617eb0331f543fe5ebf0caee1e253794bca554f35daf",
+   "bytes": 629898,
+   "lines": 15641
+  },
+  {
+   "split": "eth",
+   "subset": "train",
+   "file": "uni_examples_train.txt",
+   "sha256": "06866bea5c2f589094473371e9fb6b653c7af95e5f748434bc1024544c5e1c7a",
+   "bytes": 89740,
+   "lines": 2266
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "biwi_hotel_val.txt",
+   "sha256": "5c6026c5c6feb81295187e2e063d86197344428811ac2ae98a45bdfb5dfa79ed",
+   "bytes": 39395,
+   "lines": 1597
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "crowds_zara01_val.txt",
+   "sha256": "d5212e4e3289aa44365e5ce34a476ef2a4208c89bd6a29204ece097c7f33c157",
+   "bytes": 34595,
+   "lines": 846
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "crowds_zara02_val.txt",
+   "sha256": "361949e5655814680e1185bdd23344932f7b6ccc0d7120c34b523495d0fc69f8",
+   "bytes": 86209,
+   "lines": 2101
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "crowds_zara03_val.txt",
+   "sha256": "60d464e21fd3851fab146ec3b35d0db4155b3c057f4b46050336eac59314f0f5",
+   "bytes": 52889,
+   "lines": 1297
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "students001_val.txt",
+   "sha256": "dc8f3147820e80642903041b017292eb03ea5df81ffd2974b47a725d8ffeb394",
+   "bytes": 141272,
+   "lines": 3460
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "students003_val.txt",
+   "sha256": "b7aa6dcedba0e9036272dc363e2a25e6bb80d7485d75dcb3fff918ce01b10e24",
+   "bytes": 94381,
+   "lines": 2312
+  },
+  {
+   "split": "eth",
+   "subset": "val",
+   "file": "uni_examples_val.txt",
+   "sha256": "436dfa865ffab37957e928e227a1b6cc836ab0e6b7652abbf5d06cdf5638dee4",
+   "bytes": 19567,
+   "lines": 481
+  },
+  {
+   "split": "eth",
+   "subset": "test",
+   "file": "biwi_eth.txt",
+   "sha256": "cf8d3fd342a15f409ebc2a1fc76b91a0f06390bd21f1e11410f3859331ab082b",
+   "bytes": 116970,
+   "lines": 5492
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "biwi_eth_train.txt",
+   "sha256": "7905d1337f8466c3ebcd80e8264158209370e939774a371d215491256128407e",
+   "bytes": 83681,
+   "lines": 3666
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "crowds_zara01_train.txt",
+   "sha256": "5b2ff1a334f4b3e8595e0ee898874b1795561db7bde97e90cbc4a1382c8c3d56",
+   "bytes": 171116,
+   "lines": 4307
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "crowds_zara02_train.txt",
+   "sha256": "9fd606341135d7d211c3af259c9eb2c25e4c7035efc43d3007ceeef6f954b247",
+   "bytes": 306018,
+   "lines": 7621
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "crowds_zara03_train.txt",
+   "sha256": "d38a0a6cd1e24adadbb3b15cac97b747e5c6ace2c59d457d805f38a4d91d5a03",
+   "bytes": 146945,
+   "lines": 3708
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "students001_train.txt",
+   "sha256": "f41a0a63301e1c15104205c4a1540db477ddc3330ee2801a976d7b9fc238a63e",
+   "bytes": 738442,
+   "lines": 18353
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "students003_train.txt",
+   "sha256": "85fe6324e9a0b94acb21617eb0331f543fe5ebf0caee1e253794bca554f35daf",
+   "bytes": 629898,
+   "lines": 15641
+  },
+  {
+   "split": "hotel",
+   "subset": "train",
+   "file": "uni_examples_train.txt",
+   "sha256": "06866bea5c2f589094473371e9fb6b653c7af95e5f748434bc1024544c5e1c7a",
+   "bytes": 89740,
+   "lines": 2266
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "biwi_eth_val.txt",
+   "sha256": "ed19f8ee52e024788658d70060c1452b991aa506b78ea649c74f79e075ad20b9",
+   "bytes": 44273,
+   "lines": 1826
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "crowds_zara01_val.txt",
+   "sha256": "d5212e4e3289aa44365e5ce34a476ef2a4208c89bd6a29204ece097c7f33c157",
+   "bytes": 34595,
+   "lines": 846
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "crowds_zara02_val.txt",
+   "sha256": "361949e5655814680e1185bdd23344932f7b6ccc0d7120c34b523495d0fc69f8",
+   "bytes": 86209,
+   "lines": 2101
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "crowds_zara03_val.txt",
+   "sha256": "60d464e21fd3851fab146ec3b35d0db4155b3c057f4b46050336eac59314f0f5",
+   "bytes": 52889,
+   "lines": 1297
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "students001_val.txt",
+   "sha256": "dc8f3147820e80642903041b017292eb03ea5df81ffd2974b47a725d8ffeb394",
+   "bytes": 141272,
+   "lines": 3460
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "students003_val.txt",
+   "sha256": "b7aa6dcedba0e9036272dc363e2a25e6bb80d7485d75dcb3fff918ce01b10e24",
+   "bytes": 94381,
+   "lines": 2312
+  },
+  {
+   "split": "hotel",
+   "subset": "val",
+   "file": "uni_examples_val.txt",
+   "sha256": "436dfa865ffab37957e928e227a1b6cc836ab0e6b7652abbf5d06cdf5638dee4",
+   "bytes": 19567,
+   "lines": 481
+  },
+  {
+   "split": "hotel",
+   "subset": "test",
+   "file": "biwi_hotel.txt",
+   "sha256": "9caa771bb9153d6b809dd0916b6f86761b641e6bbb15e766c1de3133fbbb7fcf",
+   "bytes": 143799,
+   "lines": 6543
+  },
+  {
+   "split": "univ",
+   "subset": "train",
+   "file": "biwi_eth_train.txt",
+   "sha256": "7905d1337f8466c3ebcd80e8264158209370e939774a371d215491256128407e",
+   "bytes": 83681,
+   "lines": 3666
+  },
+  {
+   "split": "univ",
+   "subset": "train",
+   "file": "biwi_hotel_train.txt",
+   "sha256": "f3f485043273e3d972efd73770df0021ec7d3d5135f60d2e2ca5809f68d6f104",
+   "bytes": 117490,
+   "lines": 4946
+  },
+  {
+   "split": "univ",
+   "subset": "train",
+   "file": "crowds_zara01_train.txt",
+   "sha256": "5b2ff1a334f4b3e8595e0ee898874b1795561db7bde97e90cbc4a1382c8c3d56",
+   "bytes": 171116,
+   "lines": 4307
+  },
+  {
+   "split": "univ",
+   "subset": "train",
+   "file": "crowds_zara02_train.txt",
+   "sha256": "9fd606341135d7d211c3af259c9eb2c25e4c7035efc43d3007ceeef6f954b247",
+   "bytes": 306018,
+   "lines": 7621
+  },
+  {
+   "split": "univ",
+   "subset": "train",
+   "file": "crowds_zara03_train.txt",
+   "sha256": "d38a0a6cd1e24adadbb3b15cac97b747e5c6ace2c59d457d805f38a4d91d5a03",
+   "bytes": 146945,
+   "lines": 3708
+  },
+  {
+   "split": "univ",
+   "subset": "train",
+   "file": "uni_examples_train.txt",
+   "sha256": "06866bea5c2f589094473371e9fb6b653c7af95e5f748434bc1024544c5e1c7a",
+   "bytes": 89740,
+   "lines": 2266
+  },
+  {
+   "split": "univ",
+   "subset": "val",
+   "file": "biwi_eth_val.txt",
+   "sha256": "ed19f8ee52e024788658d70060c1452b991aa506b78ea649c74f79e075ad20b9",
+   "bytes": 44273,
+   "lines": 1826
+  },
+  {
+   "split": "univ",
+   "subset": "val",
+   "file": "biwi_hotel_val.txt",
+   "sha256": "5c6026c5c6feb81295187e2e063d86197344428811ac2ae98a45bdfb5dfa79ed",
+   "bytes": 39395,
+   "lines": 1597
+  },
+  {
+   "split": "univ",
+   "subset": "val",
+   "file": "crowds_zara01_val.txt",
+   "sha256": "d5212e4e3289aa44365e5ce34a476ef2a4208c89bd6a29204ece097c7f33c157",
+   "bytes": 34595,
+   "lines": 846
+  },
+  {
+   "split": "univ",
+   "subset": "val",
+   "file": "crowds_zara02_val.txt",
+   "sha256": "361949e5655814680e1185bdd23344932f7b6ccc0d7120c34b523495d0fc69f8",
+   "bytes": 86209,
+   "lines": 2101
+  },
+  {
+   "split": "univ",
+   "subset": "val",
+   "file": "crowds_zara03_val.txt",
+   "sha256": "60d464e21fd3851fab146ec3b35d0db4155b3c057f4b46050336eac59314f0f5",
+   "bytes": 52889,
+   "lines": 1297
+  },
+  {
+   "split": "univ",
+   "subset": "val",
+   "file": "uni_examples_val.txt",
+   "sha256": "436dfa865ffab37957e928e227a1b6cc836ab0e6b7652abbf5d06cdf5638dee4",
+   "bytes": 19567,
+   "lines": 481
+  },
+  {
+   "split": "univ",
+   "subset": "test",
+   "file": "students001.txt",
+   "sha256": "a6d87f278d94136fe39b8be91555487a29ac77259ae403b9dba2d5c18caf7b5b",
+   "bytes": 879714,
+   "lines": 21813
+  },
+  {
+   "split": "univ",
+   "subset": "test",
+   "file": "students003.txt",
+   "sha256": "e25798b660634330aa89f8bb259425de720e84d0873902726c1d1f4ccff21d6c",
+   "bytes": 724279,
+   "lines": 17953
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "biwi_eth_train.txt",
+   "sha256": "7905d1337f8466c3ebcd80e8264158209370e939774a371d215491256128407e",
+   "bytes": 83681,
+   "lines": 3666
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "biwi_hotel_train.txt",
+   "sha256": "f3f485043273e3d972efd73770df0021ec7d3d5135f60d2e2ca5809f68d6f104",
+   "bytes": 117490,
+   "lines": 4946
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "crowds_zara02_train.txt",
+   "sha256": "9fd606341135d7d211c3af259c9eb2c25e4c7035efc43d3007ceeef6f954b247",
+   "bytes": 306018,
+   "lines": 7621
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "crowds_zara03_train.txt",
+   "sha256": "d38a0a6cd1e24adadbb3b15cac97b747e5c6ace2c59d457d805f38a4d91d5a03",
+   "bytes": 146945,
+   "lines": 3708
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "students001_train.txt",
+   "sha256": "f41a0a63301e1c15104205c4a1540db477ddc3330ee2801a976d7b9fc238a63e",
+   "bytes": 738442,
+   "lines": 18353
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "students003_train.txt",
+   "sha256": "85fe6324e9a0b94acb21617eb0331f543fe5ebf0caee1e253794bca554f35daf",
+   "bytes": 629898,
+   "lines": 15641
+  },
+  {
+   "split": "zara1",
+   "subset": "train",
+   "file": "uni_examples_train.txt",
+   "sha256": "06866bea5c2f589094473371e9fb6b653c7af95e5f748434bc1024544c5e1c7a",
+   "bytes": 89740,
+   "lines": 2266
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "biwi_eth_val.txt",
+   "sha256": "ed19f8ee52e024788658d70060c1452b991aa506b78ea649c74f79e075ad20b9",
+   "bytes": 44273,
+   "lines": 1826
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "biwi_hotel_val.txt",
+   "sha256": "5c6026c5c6feb81295187e2e063d86197344428811ac2ae98a45bdfb5dfa79ed",
+   "bytes": 39395,
+   "lines": 1597
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "crowds_zara02_val.txt",
+   "sha256": "361949e5655814680e1185bdd23344932f7b6ccc0d7120c34b523495d0fc69f8",
+   "bytes": 86209,
+   "lines": 2101
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "crowds_zara03_val.txt",
+   "sha256": "60d464e21fd3851fab146ec3b35d0db4155b3c057f4b46050336eac59314f0f5",
+   "bytes": 52889,
+   "lines": 1297
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "students001_val.txt",
+   "sha256": "dc8f3147820e80642903041b017292eb03ea5df81ffd2974b47a725d8ffeb394",
+   "bytes": 141272,
+   "lines": 3460
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "students003_val.txt",
+   "sha256": "b7aa6dcedba0e9036272dc363e2a25e6bb80d7485d75dcb3fff918ce01b10e24",
+   "bytes": 94381,
+   "lines": 2312
+  },
+  {
+   "split": "zara1",
+   "subset": "val",
+   "file": "uni_examples_val.txt",
+   "sha256": "436dfa865ffab37957e928e227a1b6cc836ab0e6b7652abbf5d06cdf5638dee4",
+   "bytes": 19567,
+   "lines": 481
+  },
+  {
+   "split": "zara1",
+   "subset": "test",
+   "file": "crowds_zara01.txt",
+   "sha256": "1147a1962a09abfb86f28c6cddcac862e095a0cf129b3016385b69eacdd09d85",
+   "bytes": 205711,
+   "lines": 5153
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "biwi_eth_train.txt",
+   "sha256": "7905d1337f8466c3ebcd80e8264158209370e939774a371d215491256128407e",
+   "bytes": 83681,
+   "lines": 3666
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "biwi_hotel_train.txt",
+   "sha256": "f3f485043273e3d972efd73770df0021ec7d3d5135f60d2e2ca5809f68d6f104",
+   "bytes": 117490,
+   "lines": 4946
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "crowds_zara01_train.txt",
+   "sha256": "5b2ff1a334f4b3e8595e0ee898874b1795561db7bde97e90cbc4a1382c8c3d56",
+   "bytes": 171116,
+   "lines": 4307
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "crowds_zara03_train.txt",
+   "sha256": "d38a0a6cd1e24adadbb3b15cac97b747e5c6ace2c59d457d805f38a4d91d5a03",
+   "bytes": 146945,
+   "lines": 3708
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "students001_train.txt",
+   "sha256": "f41a0a63301e1c15104205c4a1540db477ddc3330ee2801a976d7b9fc238a63e",
+   "bytes": 738442,
+   "lines": 18353
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "students003_train.txt",
+   "sha256": "85fe6324e9a0b94acb21617eb0331f543fe5ebf0caee1e253794bca554f35daf",
+   "bytes": 629898,
+   "lines": 15641
+  },
+  {
+   "split": "zara2",
+   "subset": "train",
+   "file": "uni_examples_train.txt",
+   "sha256": "06866bea5c2f589094473371e9fb6b653c7af95e5f748434bc1024544c5e1c7a",
+   "bytes": 89740,
+   "lines": 2266
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "biwi_eth_val.txt",
+   "sha256": "ed19f8ee52e024788658d70060c1452b991aa506b78ea649c74f79e075ad20b9",
+   "bytes": 44273,
+   "lines": 1826
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "biwi_hotel_val.txt",
+   "sha256": "5c6026c5c6feb81295187e2e063d86197344428811ac2ae98a45bdfb5dfa79ed",
+   "bytes": 39395,
+   "lines": 1597
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "crowds_zara01_val.txt",
+   "sha256": "d5212e4e3289aa44365e5ce34a476ef2a4208c89bd6a29204ece097c7f33c157",
+   "bytes": 34595,
+   "lines": 846
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "crowds_zara03_val.txt",
+   "sha256": "60d464e21fd3851fab146ec3b35d0db4155b3c057f4b46050336eac59314f0f5",
+   "bytes": 52889,
+   "lines": 1297
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "students001_val.txt",
+   "sha256": "dc8f3147820e80642903041b017292eb03ea5df81ffd2974b47a725d8ffeb394",
+   "bytes": 141272,
+   "lines": 3460
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "students003_val.txt",
+   "sha256": "b7aa6dcedba0e9036272dc363e2a25e6bb80d7485d75dcb3fff918ce01b10e24",
+   "bytes": 94381,
+   "lines": 2312
+  },
+  {
+   "split": "zara2",
+   "subset": "val",
+   "file": "uni_examples_val.txt",
+   "sha256": "436dfa865ffab37957e928e227a1b6cc836ab0e6b7652abbf5d06cdf5638dee4",
+   "bytes": 19567,
+   "lines": 481
+  },
+  {
+   "split": "zara2",
+   "subset": "test",
+   "file": "crowds_zara02.txt",
+   "sha256": "8a649d0f8c9ae75c87c4d23a85f892786b0aa30266e996c7be03e69dafff22ff",
+   "bytes": 392227,
+   "lines": 9722
+  }
+ ]
+}

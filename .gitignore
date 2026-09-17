@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# 데이터·산출물 (DVC 로 추적, git 에는 포인터만)
+data/raw/
+data/processed/
+data/rtls/
+data/cache/
+/mlruns/
+/mlflow.db
+/mlartifacts/
+/outputs/
+/multirun/
+# 체크포인트는 37 KB 짜리라 커밋한다 (results/checkpoints/**/best.pth, assets/official_checkpoints). ONNX 도 58 KB.
+artifacts/onnx-smoke/
+results/smoke/
+results/_prelim_*.json
+results/logs-*.txt
+
+# DVC
+/.dvc/tmp
+/.dvc/cache
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# 로컬 환경
+.env
+.terraform/
+*.tfstate
+*.tfstate.backup
+site/

@@ -1,0 +1,37 @@
+site_name: rtls-foresight
+site_description: RTLS 위치 스트림 기반 궤적 예측·충돌 사전 경보 — Social-STGCNN 재현부터 스트리밍 서빙까지
+repo_url: https://github.com/sokldjs554/rtls-foresight
+docs_dir: docs
+hooks: [docs/_hooks.py]          # results/figures 를 site/ 로 복사 (문서의 ../results/figures 링크용)
+validation:
+  links:
+    not_found: info               # docs_dir 밖(results/figures)을 가리키는 그림 링크는 훅이 복사한다
+theme:
+  name: material
+  language: ko
+  features: [navigation.sections, content.code.copy, toc.integrate]
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - 개요: index.md
+  - 아키텍처: architecture.md
+  - 논문 재현: paper_reproduction.md
+  - 평가 방법론: evaluation_methodology.md
+  - 데이터 파이프라인: data_pipeline.md
+  - 추론 최적화: inference_optimization.md
+  - 서빙·스트리밍: serving_streaming.md
+  - 실험 로그: experiment_log.md
+  - 모델 카드: model_card.md
+  - 데이터 카드: data_card.md
+  - 결정 기록 (ADR):
+      - 주제 선정: adr/0001-topic-selection.md
+      - 재현 기준: adr/0002-faithful-to-official-code.md
+      - CPU 학습: adr/0003-cpu-only-training.md
+      - MLflow: adr/0004-mlflow-sqlite-registry.md
+      - 합성 RTLS: adr/0005-synthetic-rtls.md

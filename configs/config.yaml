@@ -1,0 +1,22 @@
+# Hydra 루트 설정. 실행 예: foresight train dataset=eth train=paper seed=0
+defaults:
+  - dataset: eth
+  - model: social_stgcnn
+  - train: paper
+  - _self_
+
+seed: 0
+threads: 1            # 분할 5개를 프로세스 병렬로 돌리기 위한 기본값 (4코어 머신 기준)
+out_dir: results/checkpoints
+run_name: null        # null 이면 "<dataset>-<train>-seed<seed>"
+init_from: null       # 미세조정: 이 체크포인트에서 가중치를 읽고 시작
+
+mlflow:
+  tracking_uri: ${oc.env:MLFLOW_TRACKING_URI,sqlite:///mlflow.db}   # MLflow 3: 파일 스토어는 유지보수 모드. SQLite 면 모델 레지스트리도 된다.
+  experiment: social-stgcnn
+  register: true      # sqlite/서버 URI 에서 모델 레지스트리에 등록 (file: 스토어는 건너뜀)
+
+eval:
+  k: 20
+  seeds: [0, 1, 2]
+  official_ckpt: null # 같은 평가기로 공식 체크포인트도 평가 (경로)

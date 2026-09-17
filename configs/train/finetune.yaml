@@ -1,0 +1,14 @@
+# RTLS 전이: ETH/UCY 로 학습한 가중치(init_from)에서 시작, 낮은 학습률로 짧게
+epochs: 30
+lr: 0.002
+optimizer: sgd
+batch_size: 128
+lr_step: 20
+lr_gamma: 0.2
+clip_grad: null
+mode: scene
+bucket_batch: 32
+loss_exact: true
+val_every: 1
+log_every: 50
+save_best: true

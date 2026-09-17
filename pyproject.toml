@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtls-foresight"
+version = "0.1.0"
+description = "RTLS 위치 스트림에서 작업자·장비의 미래 궤적을 예측하고 충돌 위험을 사전 경보하는 AI 파이프라인 (Social-STGCNN 재현 + 스트리밍 서빙)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "sokldjs554" }]
+keywords = ["trajectory-prediction", "rtls", "uwb", "social-stgcnn", "graph-neural-network", "pytorch", "onnx", "mlflow", "kafka", "worker-safety"]
+
+dependencies = [
+    "numpy>=1.26",
+    "torch>=2.2",
+    "polars>=1.0",
+    "pyarrow>=15",
+    "duckdb>=1.0",
+    "pandera>=0.20",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "hydra-core>=1.3",
+    "omegaconf>=2.3",
+    "mlflow>=2.12",
+    "typer>=0.12",
+    "rich>=13.7",
+    "tqdm>=4.66",
+    "pyyaml>=6.0",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+# 추론 최적화 + 서빙: ONNX Runtime, FastAPI
+serve = [
+    "onnx>=1.16",
+    "onnxruntime>=1.18",
+    "onnxscript>=0.1",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "prometheus-client>=0.20",
+    "httpx>=0.27",
+    "orjson>=3.10",
+]
+# Kafka/Redpanda 스트리밍 소비자·생산자
+stream = ["confluent-kafka>=2.3"]
+# 데이터 버저닝 + S3 호환 원격
+dvc = ["dvc[s3]>=3.50", "boto3>=1.34"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "networkx>=3.2",       # 그래프 구성이 공식 코드(networkx)와 같은지 검증하는 테스트에만 사용
+    "pre-commit>=3.7",
+    "jupyter>=1.0",
+    "nbconvert>=7.16",
+    "ipykernel>=6.29",
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "locust>=2.29",
+    "psutil>=5.9",
+]
+all = ["rtls-foresight[serve,stream,dvc,dev]"]
+
+[project.scripts]
+foresight = "foresight.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+foresight = ["data/manifests/*.json", "py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "scripts", "tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W", "RUF"]
+ignore = ["E501", "RUF001", "RUF002", "RUF003", "N806", "N803", "N812", "B008", "B905"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["foresight"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = false
+check_untyped_defs = true
+files = ["src/foresight"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -ra"
+markers = [
+    "slow: 수 분 이상 걸리는 테스트 (CI 기본 제외)",
+    "docker: Docker 데몬이 필요한 테스트",
+]
+filterwarnings = ["ignore::DeprecationWarning"]

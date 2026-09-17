@@ -1,0 +1,12 @@
+# 논문 기본값. time_channel_swap: 공식 코드의 view 동작(재현) / permute(논문 그림). kernel: velocity(공식 코드) / position(논문 본문).
+n_stgcnn: 1
+n_txpcnn: 5
+in_channels: 2
+out_channels: 5
+obs_len: 8
+pred_len: 12
+t_kernel: 3
+time_channel_swap: view
+graph:
+  kernel: velocity
+  normalize: true

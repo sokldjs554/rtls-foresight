@@ -1,0 +1,138 @@
+{
+ "source_checkpoint": "/home/user/rtls-foresight/assets/official_checkpoints/social-stgcnn-eth.pth",
+ "source_sha256": "b7c3065ae15aed21cface1badb819eb8d03122a560e24faf8ed7b9bec71343f2",
+ "param_count": 7563,
+ "created_at": "2026-09-17T19:58:10",
+ "torch": "2.14.0+cu130",
+ "onnx": "1.22.0",
+ "onnxruntime": "1.30.0",
+ "platform": "Linux-6.18.44-fc-v33-x86_64-with-glibc2.39",
+ "inputs": {
+  "v": "(1, 2, 8, N) float32 relative displacement",
+  "a": "(8, N, N) float32 normalized Laplacian"
+ },
+ "output": {
+  "params": "(1, 5, 12, N) float32 (mu_x, mu_y, log_sx, log_sy, atanh_rho)"
+ },
+ "export": {
+  "exporter": "dynamo",
+  "opset": 18,
+  "n_nodes": 22,
+  "ops": [
+   "Add",
+   "BatchNormalization",
+   "Conv",
+   "Einsum",
+   "PRelu",
+   "Reshape"
+  ],
+  "export_seconds": 4.6,
+  "errors": {}
+ },
+ "parity": {
+  "n_scenes": 122,
+  "n_min": 2,
+  "n_max": 57,
+  "max_abs_diff": 2.384185791015625e-06,
+  "tol": 0.0001
+ },
+ "files": {
+  "social_stgcnn_fp32.onnx": {
+   "sha256": "1f2a43149c1df42caa58b351236a1263d939d671a0d492ce1697f63270061896",
+   "bytes": 57775
+  },
+  "social_stgcnn_int8_full.onnx": {
+   "sha256": "cad422909c9dda8baae6ec7aba06d1fb1178f39487d610ac292aca43937eeda1",
+   "bytes": 49063
+  },
+  "social_stgcnn_int8_txp.onnx": {
+   "sha256": "d460ac0788edd409fd60bda8fd9e39aa149eade5b9e6a5ca015ed58f7285351f",
+   "bytes": 43791
+  },
+  "social_stgcnn_int8.onnx": {
+   "sha256": "d460ac0788edd409fd60bda8fd9e39aa149eade5b9e6a5ca015ed58f7285351f",
+   "bytes": 43791,
+   "copy_of": "social_stgcnn_int8_txp.onnx"
+  }
+ },
+ "int8": {
+  "calibration_npz": "/home/user/rtls-foresight/data/processed/ethucy/eth/train.npz",
+  "n_calib": 200,
+  "test_npz": "/home/user/rtls-foresight/data/processed/ethucy/eth/test.npz",
+  "fp32_accuracy": {
+   "ade_det": 0.9879735708236694,
+   "fde_det": 1.8036682605743408,
+   "ade_bo20": 0.718084990978241,
+   "fde_bo20": 1.1872843503952026,
+   "n_scenes": 70,
+   "n_agents": 181,
+   "k": 20,
+   "seed": 0
+  },
+  "variants": {
+   "full": {
+    "file": "social_stgcnn_int8_full.onnx",
+    "quantize": {
+     "variant": "full",
+     "n_calib": 200,
+     "excluded_nodes": [],
+     "quant_seconds": 0.20103566199986744,
+     "n_quantized_nodes": 22
+    },
+    "accuracy": {
+     "ade_det": 1.0772278308868408,
+     "fde_det": 1.8786779642105103,
+     "ade_bo20": 0.7927274107933044,
+     "fde_bo20": 1.259004831314087,
+     "n_scenes": 70,
+     "n_agents": 181,
+     "k": 20,
+     "seed": 0
+    },
+    "delta_vs_fp32": {
+     "ade_det": 0.08925426006317139,
+     "fde_det": 0.07500970363616943,
+     "ade_bo20": 0.07464241981506348,
+     "fde_bo20": 0.07172048091888428
+    }
+   },
+   "txp-only": {
+    "file": "social_stgcnn_int8_txp.onnx",
+    "quantize": {
+     "variant": "txp-only",
+     "n_calib": 200,
+     "excluded_nodes": [
+      "node_Conv_43",
+      "node_conv2d_1",
+      "node_einsum",
+      "node__native_batch_norm_legit_no_training_1__0",
+      "node_prelu",
+      "node_Conv_44",
+      "node_add_36",
+      "node_prelu_1"
+     ],
+     "quant_seconds": 0.19666765000010855,
+     "n_quantized_nodes": 14
+    },
+    "accuracy": {
+     "ade_det": 1.026343584060669,
+     "fde_det": 1.8754374980926514,
+     "ade_bo20": 0.7519537210464478,
+     "fde_bo20": 1.2580199241638184,
+     "n_scenes": 70,
+     "n_agents": 181,
+     "k": 20,
+     "seed": 0
+    },
+    "delta_vs_fp32": {
+     "ade_det": 0.03837001323699951,
+     "fde_det": 0.07176923751831055,
+     "ade_bo20": 0.03386873006820679,
+     "fde_bo20": 0.07073557376861572
+    }
+   }
+  },
+  "selected": "social_stgcnn_int8_txp.onnx",
+  "note": "dynamic quantization does not quantize Conv; static QDQ per-channel, MinMax calibration (histogram methods fail on ragged N)"
+ }
+}

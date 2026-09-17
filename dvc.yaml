@@ -1,0 +1,69 @@
+# 데이터 → 학습 → 평가 → 내보내기 → 벤치마크. `dvc repro` 는 바뀐 입력의 하류만 다시 돈다.
+# 데이터 산출물(outs)은 DVC 캐시/원격(MinIO·S3)에, 지표(metrics)는 git 에 남는다.
+stages:
+  download:
+    cmd: foresight download
+    deps: [src/foresight/data/download.py, src/foresight/data/manifests/ethucy.json]
+    outs: [data/raw/ethucy]
+
+  prepare:
+    cmd: foresight prepare
+    deps: [data/raw/ethucy, src/foresight/data/ethucy.py]
+    outs: [data/processed/ethucy]
+
+  simulate:
+    cmd: foresight simulate --profile ${rtls.profile} --seed ${seed}
+    params: [rtls.profile, seed]
+    deps: [src/foresight/data/rtls_sim.py]
+    outs: ["data/rtls/${rtls.profile}/raw"]
+
+  prepare_rtls:
+    cmd: foresight prepare-rtls --in-dir data/rtls/${rtls.profile}/raw --out-dir data/processed/rtls --train-skip ${rtls.train_skip}
+    params: [rtls.train_skip]
+    deps: ["data/rtls/${rtls.profile}/raw", src/foresight/data/rtls_pipeline.py]
+    outs: [data/processed/rtls]
+
+  train:
+    foreach: [eth, hotel, univ, zara1, zara2]
+    do:
+      cmd: foresight train dataset=${item} train=${train} seed=${seed} threads=1
+      params: [seed, train]
+      deps: ["data/processed/ethucy/${item}", src/foresight/models, src/foresight/train, configs]
+      outs: ["results/checkpoints/${item}/seed${seed}/best.pth"]
+      metrics:
+        - results/checkpoints/${item}/seed${seed}/metrics.json: { cache: false }
+
+  evaluate:
+    cmd: foresight evaluate --seeds 0,1,2 && python scripts/collect_results.py && python scripts/sync_tables.py
+    deps:
+      - results/checkpoints/eth/seed${seed}/best.pth
+      - results/checkpoints/hotel/seed${seed}/best.pth
+      - results/checkpoints/univ/seed${seed}/best.pth
+      - results/checkpoints/zara1/seed${seed}/best.pth
+      - results/checkpoints/zara2/seed${seed}/best.pth
+      - assets/official_checkpoints
+      - src/foresight/eval
+    metrics:
+      - results/reproduction.json: { cache: false }
+
+  rtls_transfer:
+    cmd: LIMIT=${rtls.transfer_limit_scenes} EVERY=${rtls.eval_every} DATA=data/processed/rtls scripts/run_rtls_transfer.sh
+    params: [rtls.transfer_limit_scenes, rtls.eval_every, rtls.d_safe]
+    deps: [data/processed/rtls, "results/checkpoints/eth/seed${seed}/best.pth", src/foresight/eval/collision.py, src/foresight/serving/risk.py]
+    metrics:
+      - results/rtls_transfer.json: { cache: false }
+      - results/collision_eval.json: { cache: false }
+
+  export:
+    cmd: foresight export --ckpt results/checkpoints/eth/seed${seed}/best.pth --out artifacts/onnx
+    params: [export.int8]
+    deps: ["results/checkpoints/eth/seed${seed}/best.pth", src/foresight/inference/export.py, src/foresight/inference/quantize.py]
+    outs: [artifacts/onnx/social_stgcnn_fp32.onnx, artifacts/onnx/social_stgcnn_int8.onnx]
+    metrics:
+      - artifacts/onnx/manifest.json: { cache: false }
+
+  benchmark:
+    cmd: foresight benchmark --ckpt results/checkpoints/eth/seed${seed}/best.pth --onnx-dir artifacts/onnx --out results/benchmark.json
+    deps: [artifacts/onnx/social_stgcnn_fp32.onnx, artifacts/onnx/social_stgcnn_int8.onnx, src/foresight/inference/benchmark.py]
+    metrics:
+      - results/benchmark.json: { cache: false }

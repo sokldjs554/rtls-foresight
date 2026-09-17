@@ -1,0 +1,84 @@
+20:39:25 INFO foresight.train.train: data: train 2594 / val 621 / test 301 scenes (1.3s)
+20:39:25 INFO foresight.train.train: model params: 7563
+20:39:42 INFO foresight.train.train: epoch   0 train 1.4601 val 1.0239 lr 0.01 (14.9s) *
+20:39:57 INFO foresight.train.train: epoch   1 train 0.6598 val 1.3787 lr 0.01 (15.1s)
+20:40:11 INFO foresight.train.train: epoch   2 train 0.3529 val 0.8047 lr 0.01 (14.0s) *
+20:40:24 INFO foresight.train.train: epoch   3 train 0.2858 val 0.0867 lr 0.01 (12.8s) *
+20:40:35 INFO foresight.train.train: epoch   4 train 0.1475 val 0.2250 lr 0.01 (11.0s)
+20:40:45 INFO foresight.train.train: epoch   5 train 0.0111 val -0.2511 lr 0.01 (10.0s) *
+20:40:55 INFO foresight.train.train: epoch   6 train -0.0740 val -0.3814 lr 0.01 (10.0s) *
+20:41:05 INFO foresight.train.train: epoch   7 train -0.1717 val 0.1368 lr 0.01 (9.8s)
+20:41:15 INFO foresight.train.train: epoch   8 train -0.2231 val -0.5614 lr 0.01 (9.7s) *
+20:41:25 INFO foresight.train.train: epoch   9 train -0.3545 val 0.4612 lr 0.01 (9.8s)
+20:41:34 INFO foresight.train.train: epoch  10 train -0.3023 val -0.5618 lr 0.01 (9.7s) *
+20:41:44 INFO foresight.train.train: epoch  11 train -0.4602 val -0.4520 lr 0.01 (10.1s)
+20:41:54 INFO foresight.train.train: epoch  12 train -0.3966 val -0.5470 lr 0.01 (9.9s)
+20:42:04 INFO foresight.train.train: epoch  13 train -0.4608 val -0.7166 lr 0.01 (9.9s) *
+20:42:14 INFO foresight.train.train: epoch  14 train -0.5863 val -0.4910 lr 0.01 (9.8s)
+20:42:24 INFO foresight.train.train: epoch  15 train -0.5246 val -0.7080 lr 0.01 (9.7s)
+20:42:34 INFO foresight.train.train: epoch  16 train -0.6779 val -0.3785 lr 0.01 (10.0s)
+20:42:43 INFO foresight.train.train: epoch  17 train -0.5659 val -0.6063 lr 0.01 (9.9s)
+20:42:53 INFO foresight.train.train: epoch  18 train -0.6739 val -0.7057 lr 0.01 (9.9s)
+20:43:03 INFO foresight.train.train: epoch  19 train -0.7834 val -0.9612 lr 0.01 (10.1s) *
+20:43:14 INFO foresight.train.train: epoch  20 train -0.7531 val -0.3893 lr 0.01 (10.3s)
+20:43:25 INFO foresight.train.train: epoch  21 train -0.7769 val -1.0259 lr 0.01 (10.8s) *
+20:43:35 INFO foresight.train.train: epoch  22 train -0.7671 val -1.0475 lr 0.01 (10.3s) *
+20:43:46 INFO foresight.train.train: epoch  23 train -0.8838 val -0.6416 lr 0.01 (10.7s)
+20:43:56 INFO foresight.train.train: epoch  24 train -0.8525 val -0.9298 lr 0.01 (10.6s)
+20:44:06 INFO foresight.train.train: epoch  25 train -0.8561 val -1.0530 lr 0.01 (10.2s) *
+20:44:17 INFO foresight.train.train: epoch  26 train -0.8490 val -0.8276 lr 0.01 (10.1s)
+20:44:26 INFO foresight.train.train: epoch  27 train -0.9436 val -0.8989 lr 0.01 (9.7s)
+20:44:37 INFO foresight.train.train: epoch  28 train -0.9638 val -0.0248 lr 0.01 (10.2s)
+20:44:47 INFO foresight.train.train: epoch  29 train -0.8354 val -0.9731 lr 0.01 (10.0s)
+20:44:56 INFO foresight.train.train: epoch  30 train -0.9725 val -0.2072 lr 0.01 (9.8s)
+20:45:06 INFO foresight.train.train: epoch  31 train -0.9540 val -0.9941 lr 0.01 (10.0s)
+20:45:17 INFO foresight.train.train: epoch  32 train -0.9727 val -1.2132 lr 0.01 (10.1s) *
+20:45:26 INFO foresight.train.train: epoch  33 train -1.0159 val -0.8566 lr 0.01 (9.8s)
+20:45:36 INFO foresight.train.train: epoch  34 train -1.0370 val -1.0134 lr 0.01 (10.0s)
+20:45:47 INFO foresight.train.train: epoch  35 train -1.0438 val -0.9104 lr 0.01 (10.3s)
+20:45:57 INFO foresight.train.train: epoch  36 train -1.0257 val -1.1049 lr 0.01 (10.1s)
+20:46:07 INFO foresight.train.train: epoch  37 train -1.0951 val -1.0655 lr 0.01 (10.2s)
+20:46:18 INFO foresight.train.train: epoch  38 train -1.0415 val -1.2746 lr 0.01 (10.5s) *
+20:46:28 INFO foresight.train.train: epoch  39 train -1.1163 val -1.2242 lr 0.01 (10.3s)
+20:46:38 INFO foresight.train.train: epoch  40 train -1.1036 val -0.4947 lr 0.01 (10.5s)
+20:46:48 INFO foresight.train.train: epoch  41 train -1.1085 val -1.0919 lr 0.01 (10.1s)
+20:46:59 INFO foresight.train.train: epoch  42 train -1.0971 val -1.1803 lr 0.01 (10.3s)
+20:47:09 INFO foresight.train.train: epoch  43 train -1.1458 val -1.0539 lr 0.01 (10.3s)
+20:47:20 INFO foresight.train.train: epoch  44 train -1.1153 val -1.0871 lr 0.01 (10.6s)
+20:47:30 INFO foresight.train.train: epoch  45 train -1.1570 val -1.3046 lr 0.01 (10.3s) *
+20:47:40 INFO foresight.train.train: epoch  46 train -1.1760 val -1.1549 lr 0.01 (10.5s)
+20:47:51 INFO foresight.train.train: epoch  47 train -1.1867 val -0.7485 lr 0.01 (10.5s)
+20:48:01 INFO foresight.train.train: epoch  48 train -1.1865 val -1.1905 lr 0.01 (9.9s)
+20:48:11 INFO foresight.train.train: epoch  49 train -1.1834 val -1.3224 lr 0.01 (10.3s) *
+20:48:22 INFO foresight.train.train: epoch  50 train -1.2056 val -1.4022 lr 0.01 (10.6s) *
+20:48:32 INFO foresight.train.train: epoch  51 train -1.2036 val -0.8345 lr 0.01 (10.4s)
+20:48:43 INFO foresight.train.train: epoch  52 train -1.2385 val -1.2004 lr 0.01 (10.6s)
+20:48:54 INFO foresight.train.train: epoch  53 train -1.1976 val -1.3242 lr 0.01 (11.2s)
+20:49:04 INFO foresight.train.train: epoch  54 train -1.2644 val -0.9586 lr 0.01 (10.1s)
+20:49:15 INFO foresight.train.train: epoch  55 train -1.1933 val -1.4534 lr 0.01 (10.6s) *
+20:49:25 INFO foresight.train.train: epoch  56 train -1.2618 val -1.4189 lr 0.01 (10.1s)
+20:49:35 INFO foresight.train.train: epoch  57 train -1.2887 val -0.7912 lr 0.01 (10.4s)
+20:49:45 INFO foresight.train.train: epoch  58 train -1.2615 val -1.3578 lr 0.01 (10.1s)
+20:49:56 INFO foresight.train.train: epoch  59 train -1.2987 val -1.1771 lr 0.01 (10.6s)
+20:50:06 INFO foresight.train.train: epoch  60 train -1.2687 val -1.1981 lr 0.01 (10.1s)
+20:50:16 INFO foresight.train.train: epoch  61 train -1.3046 val -1.0731 lr 0.01 (10.1s)
+20:50:27 INFO foresight.train.train: epoch  62 train -1.3094 val -1.2786 lr 0.01 (10.5s)
+20:50:37 INFO foresight.train.train: epoch  63 train -1.3076 val -1.3204 lr 0.01 (10.3s)
+20:50:48 INFO foresight.train.train: epoch  64 train -1.3247 val -1.2968 lr 0.01 (10.8s)
+20:50:58 INFO foresight.train.train: epoch  65 train -1.3414 val -1.2555 lr 0.01 (10.5s)
+20:51:09 INFO foresight.train.train: epoch  66 train -1.3219 val -1.4619 lr 0.01 (11.0s) *
+20:51:20 INFO foresight.train.train: epoch  67 train -1.3240 val -1.3621 lr 0.01 (10.2s)
+20:51:30 INFO foresight.train.train: epoch  68 train -1.3594 val -0.7012 lr 0.01 (10.5s)
+20:51:41 INFO foresight.train.train: epoch  69 train -1.3494 val -0.8175 lr 0.01 (10.4s)
+20:51:51 INFO foresight.train.train: epoch  70 train -1.3627 val -1.1901 lr 0.01 (10.3s)
+20:52:01 INFO foresight.train.train: epoch  71 train -1.3428 val -1.0932 lr 0.01 (10.1s)
+20:52:11 INFO foresight.train.train: epoch  72 train -1.3586 val -1.4663 lr 0.01 (10.4s) *
+20:52:21 INFO foresight.train.train: epoch  73 train -1.3724 val -1.2804 lr 0.01 (9.8s)
+20:52:31 INFO foresight.train.train: epoch  74 train -1.3689 val -1.2302 lr 0.01 (9.7s)
+20:52:41 INFO foresight.train.train: epoch  75 train -1.3889 val -1.3261 lr 0.01 (9.8s)
+20:52:51 INFO foresight.train.train: epoch  76 train -1.3738 val -1.3622 lr 0.01 (9.9s)
+20:53:01 INFO foresight.train.train: epoch  77 train -1.4180 val -1.1561 lr 0.01 (10.3s)
+20:53:11 INFO foresight.train.train: epoch  78 train -1.3885 val -1.4831 lr 0.01 (9.8s) *
+20:53:21 INFO foresight.train.train: epoch  79 train -1.4203 val -1.4668 lr 0.01 (10.3s)
+20:53:31 INFO foresight.train.train: epoch  80 train -1.4121 val -0.9292 lr 0.01 (10.3s)
+20:53:42 INFO foresight.train.train: epoch  81 train -1.4168 val -1.4246 lr 0.01 (10.2s)

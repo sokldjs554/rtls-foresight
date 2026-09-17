@@ -1,0 +1,6 @@
+name: hotel
+data_dir: data/processed/ethucy/hotel
+train: ${dataset.data_dir}/train.npz
+val: ${dataset.data_dir}/val.npz
+test: ${dataset.data_dir}/test.npz
+limit_scenes: null    # 스모크 테스트용: 앞에서 N 개 장면만 사용

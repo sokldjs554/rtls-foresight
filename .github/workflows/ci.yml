@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORESIGHT_ROOT: ${{ github.workspace }}
+  MLFLOW_DISABLE_TELEMETRY: "true"
+  MLFLOW_DISABLE_AGENT_HINT: "1"
+  OMP_WAIT_POLICY: PASSIVE
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  lint:
+    name: lint + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: pip }
+      - run: pip install ruff mypy
+      - run: ruff check src tests scripts tools
+      - run: ruff format --check src tests scripts tools
+      - name: mypy (경고만, 실패시키지 않음 — 타입 힌트는 점진 도입)
+        run: pip install -e . && mypy src/foresight || true
+
+  test:
+    name: tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}", cache: pip }
+      - name: Install (CPU torch — CUDA 휠 2.5 GB 를 받을 이유가 없다)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[serve,dev]"
+      - name: Unit tests (공식 로더 동일성·골든 출력·ONNX 패리티·API·스트림)
+        run: pytest -q -p no:warnings -m "not slow and not docker"
+      - name: Smoke pipeline (다운로드 → 준비 → 2 epoch 학습 → 시뮬레이션 → RTLS 준비 → 내보내기 → 빠른 벤치)
+        if: matrix.python == '3.11'
+        run: |
+          foresight download --splits eth
+          foresight prepare --splits eth
+          foresight train dataset=eth train=smoke dataset.limit_scenes=64 eval.k=5 eval.seeds=[0] out_dir=results/smoke run_name=ci-smoke
+          foresight simulate --profile smoke
+          foresight prepare-rtls --in-dir data/rtls/smoke/raw --out-dir data/processed/rtls
+          foresight export --ckpt results/smoke/ci-smoke/best.pth --out artifacts/onnx-smoke
+          foresight benchmark --quick --ckpt results/smoke/ci-smoke/best.pth --onnx-dir artifacts/onnx-smoke --out results/benchmark-smoke.json
+      - name: README 수치·표가 results 와 일치하는지
+        if: matrix.python == '3.11'
+        run: python tools/check_readme_numbers.py --check && python scripts/sync_tables.py --check
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.python == '3.11'
+        with:
+          name: smoke-results
+          path: |
+            results/smoke/
+            results/benchmark-smoke.json
+          if-no-files-found: ignore
+
+  docker:
+    name: serving image
+    runs-on: ubuntu-latest
+    needs: [lint]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR (main 브랜치만 push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: serve
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  docs:
+    name: mkdocs build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install mkdocs mkdocs-material
+      - run: mkdocs build --strict

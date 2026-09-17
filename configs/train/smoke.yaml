@@ -1,0 +1,14 @@
+# CI 스모크: 수십 초 안에 전체 경로(학습→검증→평가→MLflow 로깅) 를 통과
+epochs: 2
+lr: 0.01
+optimizer: sgd
+batch_size: 8
+lr_step: 1
+lr_gamma: 0.5
+clip_grad: null
+mode: scene
+bucket_batch: 8
+loss_exact: true
+val_every: 1
+log_every: 5
+save_best: true

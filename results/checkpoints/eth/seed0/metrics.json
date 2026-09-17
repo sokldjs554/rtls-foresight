@@ -1,0 +1,119 @@
+{
+ "run_id": "200258beebe3408a87002674b415e949",
+ "run_name": "eth-paper-seed0",
+ "dataset": "eth",
+ "seed": 0,
+ "model_uri": "models:/m-7fc07dec6e23443bab691434128f13be",
+ "best_epoch": 224,
+ "best_val_loss": -1.8791366616884868,
+ "eval": {
+  "split": "eth",
+  "n_scenes": 70,
+  "n_agents": 181,
+  "k": 20,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "best_of_k_per_agent": {
+   "ade": 0.7428141633669535,
+   "fde": 1.3167249361673992
+  },
+  "best_of_k_per_agent_std": {
+   "ade": 0.00798862305455314,
+   "fde": 0.010996714823712287
+  },
+  "best_of_k_joint": {
+   "ade": 0.8727325201034546,
+   "fde": 1.7192853689193726
+  },
+  "deterministic": {
+   "ade": 1.0133055448532104,
+   "fde": 1.9875576496124268,
+   "n_agents": 181
+  },
+  "cvm": {
+   "ade": 0.995402991771698,
+   "fde": 2.2343809604644775,
+   "n_agents": 181
+  },
+  "cvm_sampled": {
+   "ade": 0.8529824614524841,
+   "fde": 1.8867321014404297
+  }
+ },
+ "metrics": {
+  "test_ade_bo20": 0.7428141633669535,
+  "test_fde_bo20": 1.3167249361673992,
+  "test_ade_bo20_std": 0.00798862305455314,
+  "test_fde_bo20_std": 0.010996714823712287,
+  "test_ade_joint": 0.8727325201034546,
+  "test_fde_joint": 1.7192853689193726,
+  "test_ade_det": 1.0133055448532104,
+  "test_fde_det": 1.9875576496124268,
+  "test_ade_cvm": 0.995402991771698,
+  "test_fde_cvm": 2.2343809604644775,
+  "best_epoch": 224,
+  "best_val_loss": -1.8791366616884868
+ },
+ "config": {
+  "dataset": {
+   "name": "eth",
+   "data_dir": "data/processed/ethucy/eth",
+   "train": "data/processed/ethucy/eth/train.npz",
+   "val": "data/processed/ethucy/eth/val.npz",
+   "test": "data/processed/ethucy/eth/test.npz",
+   "limit_scenes": null
+  },
+  "model": {
+   "n_stgcnn": 1,
+   "n_txpcnn": 5,
+   "in_channels": 2,
+   "out_channels": 5,
+   "obs_len": 8,
+   "pred_len": 12,
+   "t_kernel": 3,
+   "time_channel_swap": "view",
+   "graph": {
+    "kernel": "velocity",
+    "normalize": true
+   }
+  },
+  "train": {
+   "epochs": 250,
+   "lr": 0.01,
+   "optimizer": "sgd",
+   "batch_size": 128,
+   "lr_step": 150,
+   "lr_gamma": 0.2,
+   "clip_grad": null,
+   "mode": "scene",
+   "bucket_batch": 32,
+   "loss_exact": true,
+   "val_every": 1,
+   "log_every": 50,
+   "save_best": true,
+   "name": "paper"
+  },
+  "seed": 0,
+  "threads": 1,
+  "out_dir": "results/checkpoints",
+  "run_name": null,
+  "init_from": null,
+  "mlflow": {
+   "tracking_uri": "sqlite:///mlflow.db",
+   "experiment": "social-stgcnn",
+   "register": true
+  },
+  "eval": {
+   "k": 20,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "official_ckpt": null
+  }
+ }
+}

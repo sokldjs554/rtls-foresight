@@ -1,0 +1,32 @@
+# pre-commit install 후 커밋마다 실행. CI 의 lint 단계와 같은 도구·버전을 쓴다.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-added-large-files
+        args: [--maxkb=2048]   # 공식 체크포인트(37 KB)·그림은 통과, 데이터는 DVC 로
+      - id: check-merge-conflict
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.1
+    hooks:
+      - id: nbstripout
+        # 실행 결과가 남은 노트북은 의도적으로 커밋한다(EDA 결과를 GitHub 에서 바로 보게). 출력만 지우지 않고 메타데이터를 정리한다.
+        args: [--keep-output, --keep-count]
+  - repo: local
+    hooks:
+      - id: readme-numbers
+        name: README 수치가 results/*.json 과 같은지
+        entry: python tools/check_readme_numbers.py --check
+        language: system
+        pass_filenames: false
+        files: ^(README\.md|docs/.*\.md|results/.*\.json)$

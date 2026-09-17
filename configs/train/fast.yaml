@@ -1,0 +1,14 @@
+# 빠른 ablation 용: 버킷 배치 + 100 epoch
+epochs: 100
+lr: 0.01
+optimizer: sgd
+batch_size: 128
+lr_step: 60
+lr_gamma: 0.2
+clip_grad: null
+mode: bucket
+bucket_batch: 32
+loss_exact: true
+val_every: 1
+log_every: 50
+save_best: true

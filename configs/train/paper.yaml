@@ -1,0 +1,14 @@
+# Social-STGCNN 공식 train.sh: --lr 0.01 --n_stgcnn 1 --n_txpcnn 5 --use_lrschd --num_epochs 250, batch 128 장면 누적
+epochs: 250
+lr: 0.01
+optimizer: sgd
+batch_size: 128          # 옵티마이저 스텝당 누적 장면 수
+lr_step: 150             # StepLR step_size
+lr_gamma: 0.2
+clip_grad: null
+mode: scene              # scene: 장면 1개씩 (BN 통계 장면 단위, 공식) / bucket: 노드 수 같은 장면 묶음
+bucket_batch: 32         # mode=bucket 일 때 배치 크기
+loss_exact: true         # 공식 코드와 같은 pdf→clamp→-log 경로
+val_every: 1
+log_every: 50            # 옵티마이저 스텝 단위 콘솔 로그
+save_best: true

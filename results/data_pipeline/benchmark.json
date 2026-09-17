@@ -1,0 +1,258 @@
+{
+ "profiles": {
+  "smoke": {
+   "profile": "smoke",
+   "seed": 0,
+   "generated_at": "2026-09-17T20:11:26+00:00",
+   "machine": {
+    "cpu_count": 4,
+    "ram_gb": 15.7,
+    "platform": "Linux-6.18.44-fc-v33-x86_64-with-glibc2.39",
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "polars": "1.44.2",
+    "pyarrow": "25.0.1",
+    "duckdb": "1.5.5",
+    "pandas": "3.0.5"
+   },
+   "stages": {
+    "simulate": {
+     "rows": 14238,
+     "seconds": 0.703,
+     "rows_per_s": 20263.2,
+     "files": 1,
+     "hours": 0.03333333333333333,
+     "tags": 12,
+     "near_miss": 0,
+     "near_miss_per_vehicle_hour": 0.0,
+     "peak_rss_mb": 155.3,
+     "baseline_rss_mb": 155.3,
+     "wall_seconds_incl_startup": 1.035
+    },
+    "polars": {
+     "rows": 14238,
+     "rows_clean": 14181,
+     "rows_frames": 3595,
+     "seconds": 0.101,
+     "rows_per_s": 141220.6,
+     "timings": {
+      "resample_sink": 0.042,
+      "window_index": 0.049,
+      "sceneset": 0.005,
+      "total": 0.101
+     },
+     "scenes": {
+      "train": 67,
+      "val": 38,
+      "test": 23
+     },
+     "agent_windows": {
+      "train": 143,
+      "val": 76,
+      "test": 46
+     },
+     "peak_rss_mb": 162.5,
+     "baseline_rss_mb": 155.3,
+     "wall_seconds_incl_startup": 0.552
+    },
+    "pandas": {
+     "measured_rows": 14238,
+     "files": 1,
+     "seconds": 0.051,
+     "rows_per_s": 279587.4,
+     "frames": 3595,
+     "peak_rss_mb": 155.3,
+     "baseline_rss_mb": 155.3,
+     "capped": false,
+     "extrapolated": {
+      "rows": 14238,
+      "seconds": 0.1,
+      "peak_rss_mb": 155.3,
+      "note": "표본 측정값의 선형 외삽 (시간·메모리 모두 행 수에 비례한다고 가정). 실측이 아니다."
+     },
+     "wall_seconds_incl_startup": 0.596
+    },
+    "duckdb": {
+     "seconds": 0.109,
+     "rows": 14238,
+     "rows_per_s": 130104.6,
+     "queries": {
+      "raw_rows": 0.001,
+      "rows_per_hour": 0.002,
+      "rows_per_zone": 0.002,
+      "quality": 0.003,
+      "duplicates": 0.007,
+      "out_of_bounds": 0.001,
+      "agents_per_frame": 0.016,
+      "frames_rows": 0.003,
+      "frames_per_zone": 0.008,
+      "samples_per_bin": 0.011,
+      "near_miss_measured": 0.033
+     },
+     "peak_rss_mb": 155.3,
+     "baseline_rss_mb": 155.3,
+     "near_miss": {
+      "measured_frame_pairs": 0,
+      "measured_distinct_pairs": 0,
+      "truth_count": 0,
+      "truth_per_vehicle_hour": 0.0
+     },
+     "agents_per_zone_frame": {
+      "mean": 1.2871464375223773,
+      "p50": 1.0,
+      "p90": 2.0,
+      "p99": 3.0,
+      "max": 3,
+      "zone_frames": 2793
+     },
+     "wall_seconds_incl_startup": 0.554
+    }
+   },
+   "total_wall_seconds": 2.7,
+   "disk": {
+    "raw_bytes": 300159,
+    "raw_stream_bytes": 171508,
+    "frames_bytes": 95728,
+    "npz_bytes": 0,
+    "raw_deleted": false
+   }
+  },
+  "small": {
+   "profile": "small",
+   "seed": 0,
+   "generated_at": "2026-09-17T20:11:57+00:00",
+   "machine": {
+    "cpu_count": 4,
+    "ram_gb": 15.7,
+    "platform": "Linux-6.18.44-fc-v33-x86_64-with-glibc2.39",
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "polars": "1.44.2",
+    "pyarrow": "25.0.1",
+    "duckdb": "1.5.5",
+    "pandas": "3.0.5"
+   },
+   "stages": {
+    "simulate": {
+     "rows": 2135734,
+     "seconds": 21.741,
+     "rows_per_s": 98234.5,
+     "files": 12,
+     "hours": 1.0,
+     "tags": 60,
+     "near_miss": 9,
+     "near_miss_per_vehicle_hour": 0.5,
+     "peak_rss_mb": 174.5,
+     "baseline_rss_mb": 155.5,
+     "wall_seconds_incl_startup": 21.998
+    },
+    "polars": {
+     "rows": 2135734,
+     "rows_clean": 2126381,
+     "rows_frames": 539420,
+     "seconds": 2.506,
+     "rows_per_s": 852282.3,
+     "timings": {
+      "resample_sink": 1.317,
+      "window_index": 0.228,
+      "sceneset": 0.949,
+      "total": 2.506
+     },
+     "scenes": {
+      "train": 20778,
+      "val": 17360,
+      "test": 18132
+     },
+     "agent_windows": {
+      "train": 60669,
+      "val": 50611,
+      "test": 51372
+     },
+     "peak_rss_mb": 735.6,
+     "baseline_rss_mb": 155.5,
+     "wall_seconds_incl_startup": 2.971
+    },
+    "pandas": {
+     "measured_rows": 2135734,
+     "files": 12,
+     "seconds": 0.926,
+     "rows_per_s": 2307188.1,
+     "frames": 539420,
+     "peak_rss_mb": 469.9,
+     "baseline_rss_mb": 155.5,
+     "capped": false,
+     "extrapolated": {
+      "rows": 2135734,
+      "seconds": 0.9,
+      "peak_rss_mb": 469.9,
+      "note": "표본 측정값의 선형 외삽 (시간·메모리 모두 행 수에 비례한다고 가정). 실측이 아니다."
+     },
+     "wall_seconds_incl_startup": 1.496
+    },
+    "duckdb": {
+     "seconds": 1.048,
+     "rows": 2135734,
+     "rows_per_s": 2037011.7,
+     "queries": {
+      "raw_rows": 0.01,
+      "rows_per_hour": 0.012,
+      "rows_per_zone": 0.025,
+      "quality": 0.241,
+      "duplicates": 0.197,
+      "out_of_bounds": 0.086,
+      "agents_per_frame": 0.071,
+      "frames_rows": 0.011,
+      "frames_per_zone": 0.009,
+      "samples_per_bin": 0.011,
+      "near_miss_measured": 0.083,
+      "truth_by_state": 0.01,
+      "truth_min_dist": 0.002,
+      "truth_per_hour": 0.002
+     },
+     "peak_rss_mb": 277.2,
+     "baseline_rss_mb": 155.5,
+     "near_miss": {
+      "measured_frame_pairs": 14,
+      "measured_distinct_pairs": 9,
+      "truth_count": 9,
+      "truth_per_vehicle_hour": 0.5,
+      "truth_by_state": {
+       "distracted/aware": 3,
+       "aware/aware": 3,
+       "aware/distracted": 2,
+       "aware/idle": 1
+      },
+      "truth_min_dist": {
+       "p05": 0.6101399999999999,
+       "p50": 0.8002,
+       "p95": 0.9779599999999999
+      },
+      "truth_per_hour": [
+       {
+        "hour": 0,
+        "events": 9
+       }
+      ]
+     },
+     "agents_per_zone_frame": {
+      "mean": 2.7282566914159703,
+      "p50": 2.0,
+      "p90": 5.0,
+      "p99": 7.0,
+      "max": 12,
+      "zone_frames": 197716
+     },
+     "wall_seconds_incl_startup": 1.566
+    }
+   },
+   "total_wall_seconds": 28.0,
+   "disk": {
+    "raw_bytes": 42665957,
+    "raw_stream_bytes": 25668202,
+    "frames_bytes": 5792417,
+    "npz_bytes": 4998453,
+    "raw_deleted": false
+   }
+  }
+ }
+}
