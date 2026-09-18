@@ -1,0 +1,1091 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="RTLS 위치 스트림 기반 궤적 예측·충돌 사전 경보 — Social-STGCNN 재현부터 스트리밍 서빙까지">
+      
+      
+      
+      
+        <link rel="prev" href="../runbook/">
+      
+      
+        <link rel="next" href="../model_card/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>실험 로그 - rtls-foresight</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href=".." title="rtls-foresight" class="md-header__button md-logo" aria-label="rtls-foresight" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            rtls-foresight
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              실험 로그
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sokldjs554/rtls-foresight" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="rtls-foresight" class="md-nav__button md-logo" aria-label="rtls-foresight" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    rtls-foresight
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sokldjs554/rtls-foresight" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://sokldjs554.github.io/rtls-foresight/demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데모 (브라우저)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    아키텍처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    설계 문서
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 와 모듈 계약
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_reproduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    논문 재현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation_methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    평가 방법론
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 파이프라인
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inference_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    추론 최적화
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serving_streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    서빙·스트리밍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    운영 런북
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실험 로그
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실험 로그
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#e0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E0 · 공식 구현 해부와 동일성 고정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1 · 공식 체크포인트 재평가 (평가기 검증)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2 · 학습 파이프라인 스모크
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e3-5-250-epoch-cpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E3 · 논문 설정 재현 (5 분할, 250 epoch, CPU)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E4 · 시드 분산
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-ablation-eth-250-epoch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 · Ablation (eth, 250 epoch)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e6-rtls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E6 · 합성 RTLS 전이·미세조정, 충돌 경보 평가
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E7 · 추론 최적화
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e8-rtls-oom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E8 · 대규모 RTLS 파이프라인 — OOM 과 시간 파티션
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_card/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델 카드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_card/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 카드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    결정 기록 (ADR)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    결정 기록 (ADR)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0001-topic-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    주제 선정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0002-faithful-to-official-code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    재현 기준
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0003-cpu-only-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU 학습
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0004-mlflow-sqlite-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0005-synthetic-rtls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    합성 RTLS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">실험 로그</h1>
+<p>시간순 기록. 수치는 <code>results/</code> 의 JSON 이 원본이고, 여기에는 <strong>무엇을 왜 했고 무엇을 배웠는지</strong>를 남긴다.
+MLflow 실험 이름: <code>social-stgcnn</code> (본 실험), <code>social-stgcnn-ablation</code>, <code>social-stgcnn-rtls</code>.</p>
+<h2 id="e0">E0 · 공식 구현 해부와 동일성 고정</h2>
+<ul>
+<li>공식 저장소(<code>abduallahmohamed/Social-STGCNN</code>)의 데이터 로더·모델·평가 코드를 읽고, 논문 서술과 다른 세 지점을 찾았다
+  (ADR-0002: 속도 커널, <code>view</code> 축 교환, per-agent best-of-20).</li>
+<li>장면 윈도우와 그래프 텐서를 numpy 브로드캐스트로 다시 구현하고 공식 로더 결과와 <strong>비트 단위로 같음</strong>을 확인했다
+  (eth/test 70, zara1/val 605, hotel/test 301, univ/test 947 장면 전부 일치).</li>
+<li>데이터 준비 시간: 공식 ETH 학습 분할 <strong>211 s</strong> → <strong>0.95 s</strong> (파이썬 이중 루프 + networkx → 벡터화).</li>
+<li>함정 하나: 커널 거리는 <strong>float32</strong> 로 빼야 한다. 두 보행자의 변위가 float32 에서 정확히 같은 장면(ETH test 52번)이 있는데,
+    float64 로 계산하면 1e-17 차이가 1e17 가중치가 되어 라플라시안이 완전히 달라진다.</li>
+<li>모델을 처음부터 구현하고 공식 체크포인트를 로드해 출력이 <strong>같음</strong>을 테스트로 고정했다 (<code>tests/test_model.py</code>; 같은 기계에서는 비트 단위,
+  GitHub 러너처럼 CPU 커널이 다르면 1e-6 차이 — 허용오차 1e-5).
+  <code>time_channel_swap=view</code> 일 때만 같고, 논문 그림대로 <code>permute</code> 하면 다른 함수가 된다.</li>
+</ul>
+<h2 id="e1">E1 · 공식 체크포인트 재평가 (평가기 검증)</h2>
+<ul>
+<li>공식 ETH 체크포인트를 공식 평가 코드로 CPU 에서 돌리면 ADE/FDE <strong>0.73 / 1.22</strong> (시드 0). 논문 표는 0.64 / 1.11.
+  같은 체크포인트·같은 코드인데 차이가 난다 — best-of-20 샘플링의 분산과 ETH 테스트의 작은 크기(181명)가 원인 후보다.
+  5개 분할 × 3 시드 재평가 결과는 <code>results/reproduction.json</code> 의 <code>official_checkpoint</code> 열에 있다.</li>
+<li>교훈: "논문 수치와 다르다"는 말을 하기 전에 <strong>공식 체크포인트 + 같은 평가기</strong> 열을 먼저 만들어야 한다. 그래야 학습의 문제와 평가의 문제를 가를 수 있다.</li>
+</ul>
+<h2 id="e2">E2 · 학습 파이프라인 스모크</h2>
+<ul>
+<li><code>train=smoke</code> (2 epoch, 64 장면): 학습→검증→best-of-20 평가→MLflow run·레지스트리 등록까지 9 초. CI 가 매번 이 경로를 돈다.</li>
+<li>MLflow 3 은 파일 스토어를 거부한다 → SQLite 백엔드로 전환 (ADR-0004). <code>mlflow.pytorch.log_model</code> 기본 직렬화(pt2)는
+  입력 예시를 요구해 <code>pickle</code> 로 지정했다.</li>
+</ul>
+<h2 id="e3-5-250-epoch-cpu">E3 · 논문 설정 재현 (5 분할, 250 epoch, CPU)</h2>
+<ul>
+<li>설정: <code>train=paper</code> (SGD 0.01, 128 장면 누적, StepLR 150/0.2), 분할당 1 스레드, 3 프로세스 병렬.</li>
+<li>결과와 논의: <code>docs/paper_reproduction.md</code>.</li>
+</ul>
+<h2 id="e4">E4 · 시드 분산</h2>
+<ul>
+<li>재현표의 ± 는 <strong>평가(샘플링) 시드 3개</strong>의 표준편차다. <strong>학습 시드</strong> 1·2 는 별도 실행(<code>SEEDS="1 2" scripts/train_all.sh</code>)이며
+  결과는 <code>results/seeds.json</code> 과 <code>docs/paper_reproduction.md</code> 의 시드 표에 넣는다.</li>
+</ul>
+<h2 id="e5-ablation-eth-250-epoch">E5 · Ablation (eth, 250 epoch)</h2>
+<ul>
+<li>기본 0.743/1.317 · permute 0.815/1.623 · 위치 커널 0.771/1.348 · 버킷 배치 0.805/1.606 (학습 7 분) · 로그 영역 NLL <strong>0.736/1.263</strong>.</li>
+<li>결론: 공식 코드의 <code>view</code>·속도 커널·장면 단위 BN 이 모두 결과에 기여한다. 손실 클램프만은 없애는 편이 약간 낫다. 상세: <code>docs/paper_reproduction.md</code> §3.</li>
+</ul>
+<h2 id="e6-rtls">E6 · 합성 RTLS 전이·미세조정, 충돌 경보 평가</h2>
+<ul>
+<li>데이터: full 프로파일(200 태그 × 12 h) → 학습 장면 앞 60,000개(skip 4), 테스트는 1.8 h 스트림의 장면을 10개마다 하나(<code>--every 10</code>).</li>
+<li>궤적 지표(best-of-20 / 결정적, CVM 1.333/2.611): zero-shot(eth 가중치) 0.735/1.288 · 1.046/2.013 →
+  <strong>미세조정 30 epoch 0.615/0.978 · 0.905/1.750</strong>, <strong>RTLS 처음부터(버킷 배치, 60 epoch) 0.584/0.924 · 0.834/1.644</strong>
+  (<code>results/rtls_transfer.json</code>; 평가 시드 3개 평균).
+  보행자 가중치는 지게차(최대 3 m/s, 큰 회전반경)를 모른다 — RTLS 장면으로 적응하면 결정적 예측도 CVM 을 크게 이긴다
+  (ETH/UCY 에서는 반대였다: 등속에 가까운 보행자에게는 μ 가 CVM 보다 나빴다).</li>
+<li>경보 품질(<code>results/collision_eval.json</code>, d_safe 1.0 m, 양성 260/395,781 = 0.07 %): <strong>지오펜스(현재 거리)가 AP 0.084 · AUROC 0.914 로 최고</strong>,
+  RTLS 학습 모델의 분포 기반 위험은 AUROC 0.903 (AP 0.026), zero-shot 0.815, CVM-S 0.797, 결정적(μ) 변형은 0.65–0.67.
+  예측 오차(ADE 0.58 m)가 d_safe 와 같은 크기라 "현재 거리" 이상의 정보를 주지 못한다 — 예상과 다른 결과지만 그대로 싣는다 (README §4.5).</li>
+<li>d_safe 2.0 m 민감도(<code>results/collision_eval_dsafe2.json</code>, 양성 3.55 %): 순서가 뒤집힌다 — 학습 모델 AP 0.465 · F1 0.508 vs 지오펜스 0.341 · 0.383,
+  비슷한 오경보율에서 재현율 0.44 vs 0.35, 선행시간 1.64 vs 1.27 s. 예측 모델이 값을 내는 조건은 "예측 오차 ≪ 안전 거리" 라는 것을 두 설정이 같이 보여 준다.</li>
+<li>첫 실행은 궤적 표를 쓴 뒤 충돌 단계에서 죽었다: CLI 는 <code>sample_fraction</code> 을 넘기는데 <code>evaluate_collision</code> 시그니처에 없었다.
+  단위 테스트는 함수만, CI 스모크는 <code>evaluate-rtls</code> 를 안 돌려서 둘 다 놓쳤다. 인자를 구현(오경보/시간 외삽, 제외 쌍 수 기록)하고
+  테스트와 CI 스모크 단계를 추가했다.</li>
+</ul>
+<h2 id="e7">E7 · 추론 최적화</h2>
+<ul>
+<li><code>docs/inference_optimization.md</code>. 요점: ONNX Runtime fp32 가 eager 대비 2배 빠르고, <strong>정적 INT8 은 이 7.6K 모델에서 오히려 느리다</strong>
+  (Q/DQ 오버헤드 &gt; 연산 절감). TXP-CNN 만 양자화하면 정확도 손실이 절반(ADE +0.038)이지만 속도 이득은 없다. 전처리 벡터화 ×100.
+  토치 4 스레드는 OpenMP spin-wait 로 100배 느려짐 → 서빙은 1 스레드 + 프로세스 확장.</li>
+</ul>
+<h2 id="e8-rtls-oom">E8 · 대규모 RTLS 파이프라인 — OOM 과 시간 파티션</h2>
+<ul>
+<li>85M 행 full 프로파일에서 단일 lazy 쿼리(<code>unique</code>+<code>group_by</code>+PartitionBy sink)가 10.9 GB 로 OOM. 시간 파티션 단위로 바꿔
+  결과 동일(small 장면 수 일치) · 91.5 s · 피크 2.29 GB. 상세: <code>docs/data_pipeline.md</code> §4.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "content.code.copy", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

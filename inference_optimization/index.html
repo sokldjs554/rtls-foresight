@@ -1,0 +1,1616 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="RTLS 위치 스트림 기반 궤적 예측·충돌 사전 경보 — Social-STGCNN 재현부터 스트리밍 서빙까지">
+      
+      
+      
+      
+        <link rel="prev" href="../data_pipeline/">
+      
+      
+        <link rel="next" href="../serving_streaming/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>추론 최적화 - rtls-foresight</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#onnx-int8-torchcompile" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href=".." title="rtls-foresight" class="md-header__button md-logo" aria-label="rtls-foresight" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            rtls-foresight
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              추론 최적화
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sokldjs554/rtls-foresight" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="rtls-foresight" class="md-nav__button md-logo" aria-label="rtls-foresight" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    rtls-foresight
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sokldjs554/rtls-foresight" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://sokldjs554.github.io/rtls-foresight/demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데모 (브라우저)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    아키텍처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    설계 문서
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 와 모듈 계약
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper_reproduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    논문 재현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation_methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    평가 방법론
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 파이프라인
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    추론 최적화
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    추론 최적화
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. 결론 먼저
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 무엇을 했나
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 무엇을 했나">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-onnx-exportpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 ONNX 내보내기 (export.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-int8-quantizepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 정적 INT8 양자화 (quantize.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-ort-onnx_backendpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 ORT 백엔드 (onnx_backend.py)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-resultsbenchmarkjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 측정 표 (results/benchmark.json)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 측정 표 (results/benchmark.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-k20-20-p50-p95-p99-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 k=20 (평균 궤적 + 20 샘플, 서비스 기본) — p50 / p95 / p99 ms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-k0-p50-p95-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 k=0 (평균 궤적만, 결정적 위험 판정용) — p50 / p95 ms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-n20-k20-1-p50-ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 어디에 시간이 가나 (N=20, k=20, 1 스레드, p50 ms)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-z8-n10-k20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 스트리밍 워크로드 — 프레임 하나에 Z=8 구역 (구역당 N=10, k=20, 작업자×차량 위험 포함)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-networkx-vs-numpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 전처리: 공식 구현(networkx) vs 벡터화 numpy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 모델 파일
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 스레드 이야기 — 왜 1 스레드인가
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 논문 주장과 비교
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 시도했지만 채택하지 않은 것 / 한계
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 재현
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tensorflow-savedmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        부록 · TensorFlow SavedModel 경로
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serving_streaming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    서빙·스트리밍
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    운영 런북
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실험 로그
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_card/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델 카드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_card/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 카드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    결정 기록 (ADR)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    결정 기록 (ADR)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0001-topic-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    주제 선정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0002-faithful-to-official-code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    재현 기준
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0003-cpu-only-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CPU 학습
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0004-mlflow-sqlite-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/0005-synthetic-rtls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    합성 RTLS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="onnx-int8-torchcompile">추론 최적화 — ONNX / INT8 / torch.compile / 전처리 벡터화 벤치마크</h1>
+<blockquote>
+<p>코드: <code>src/foresight/inference/{export,quantize,onnx_backend,benchmark}.py</code> · 결과: <code>results/benchmark.json</code>,
+<code>results/figures/benchmark_*.png</code>, <code>artifacts/onnx/manifest.json</code> · 재현: <code>foresight export &amp;&amp; foresight benchmark</code>
+(<code>--quick</code> 는 CI 용, 약 45 s).</p>
+</blockquote>
+<h2 id="0">0. 결론 먼저</h2>
+<table>
+<thead>
+<tr>
+<th>질문</th>
+<th>답 (이 머신, CPU 4 vCPU, 1 스레드, 전처리+모델+후처리 포함)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>가장 빠른 백엔드</td>
+<td><strong>ONNX Runtime fp32</strong> — N=2 에서 k=0 0.27 ms / k=20 0.72 ms, N=57 에서 1.5 / 3.0 ms. eager 대비 모델 구간 4.5 배(0.85 → 0.19 ms @N=20), 전체 1.7~2.2 배</td>
+</tr>
+<tr>
+<td>INT8 정적 양자화</td>
+<td><strong>속도 이득 없음</strong> (fp32 보다 10~20 % 느림), 정확도 ADE +0.04 (TXP-CNN 만) ~ +0.09 (전체). 7.6K 파라미터 모델은 연산량이 너무 작아 Q/DQ 오버헤드가 절약분을 넘는다 → 서빙 기본값은 fp32</td>
+</tr>
+<tr>
+<td>torch.compile</td>
+<td>eager 대비 약 20 % (1.55 → 1.19 ms @N=2). 첫 컴파일 16.8 s, 동적 N 은 <code>dynamic=True</code> 로 재컴파일 없이 처리. 이 빌드(2.14+cu130, CPU)에서 실패 없음</td>
+</tr>
+<tr>
+<td>스레드</td>
+<td><strong>1 스레드가 최선</strong>. torch 4 스레드는 기본(OMP 스핀 대기)에서 <strong>100 배 느려짐</strong>(1.55 → 112 ms); <code>OMP_WAIT_POLICY=PASSIVE</code> 로 2 ms 대 복구. ORT 4 스레드는 p50 은 같고 p95 꼬리만 5~10 ms 로 길어짐</td>
+</tr>
+<tr>
+<td>병목</td>
+<td>k=20 이면 <strong>후처리(20 샘플 추출, torch)</strong> 가 0.9 ms 로 전체의 2/3. 모델은 0.19 ms, 전처리 0.25 ms</td>
+</tr>
+<tr>
+<td>전처리 벡터화</td>
+<td>공식 코드(파이썬 이중 루프 + networkx) 대비 <strong>numpy 브로드캐스트 ×100</strong> (N=20: 17.3 → 0.17 ms, N=57: 94.3 → 1.0 ms), 결과 차이 &lt; 1.5e-6</td>
+</tr>
+<tr>
+<td>논문 주장</td>
+<td>0.002 s/frame, 7.6K 파라미터 → 우리는 7,563 파라미터 그대로, CPU 1 스레드 fp32 로 N≤20 이면 <strong>2 ms 이내 (k=20 포함)</strong>, N=57 이면 3 ms</td>
+</tr>
+<tr>
+<td>스트리밍 예산</td>
+<td>구역(N=10, k=20, 위험 계산 포함) 당 1.6 ms p95 → 소비자 하나가 2.5 Hz 프레임 안에 <strong>~248 구역</strong></td>
+</tr>
+</tbody>
+</table>
+<p>측정 환경의 주의: 벤치마크 실행 중 같은 4 vCPU 에서 <strong>학습 프로세스 3 개(각 1 스레드)가 돌고 있었다</strong>
+(<code>meta.concurrent_training_processes = 3</code>, load average 3.3 → 6.5). 1 스레드 수치는 남은 코어에서 잰 것이라
+안정적이지만, 4 스레드 수치는 코어 경합이 더해진 값이다 — 상대 비교(백엔드 간, 스레드 정책 간)는 유효하고
+절대값은 유휴 머신에서 더 낮게 나온다. <code>meta.load_avg_*</code> 에 남겨 두었다.</p>
+<h2 id="1">1. 무엇을 했나</h2>
+<h3 id="11-onnx-exportpy">1.1 ONNX 내보내기 (<code>export.py</code>)</h3>
+<ul>
+<li><code>torch.onnx.export(dynamo=True, opset 18)</code> — torch.export 기반이라 <code>einsum</code> → <code>Einsum</code>, <code>.view</code> → <code>Reshape</code> 한 노드로
+  옮겨져 <strong>22 노드</strong> 그래프가 나온다(Add·BatchNormalization·Conv·Einsum·PRelu·Reshape). 레거시 TorchScript 경로는
+  Shape/Gather/Concat 이 끼어 64 노드. dynamo 가 실패하면 레거시(opset 17)로 폴백하고 사유를 매니페스트에 남긴다.</li>
+<li>동적 축: <code>v (1, 2, 8, N)</code>, <code>a (8, N, N)</code> → <code>params (1, 5, 12, N)</code>. <code>torch.export.Dim("N", 1..1024)</code>.</li>
+<li>이 torch 버전은 <code>external_data=True</code> 가 기본이라 가중치가 <code>.onnx.data</code> 로 분리된다 — 24 KB 짜리 모델에 파일 두 개는
+  배포만 불편하므로 <code>external_data=False</code> 로 한 파일(57.8 KB)로 묶는다.</li>
+<li>검증: <code>onnx.checker(full_check)</code> + <strong>실제 테스트 장면 122 개</strong>(ETH 전체 N=2~5, UNIV N 별 1 장면 3~57)에서 torch 와
+  최대 절대 오차 <strong>2.4e-6</strong> (허용 1e-4). 난수 입력은 라플라시안 분포가 실제와 달라 검증으로 부족하다.</li>
+<li><code>manifest.json</code>: 원본 체크포인트 경로·sha256, 파라미터 수 7,563, 각 파일 sha256·크기, opset·exporter, 패리티 결과,
+  INT8 정확도 표.</li>
+</ul>
+<h3 id="12-int8-quantizepy">1.2 정적 INT8 양자화 (<code>quantize.py</code>)</h3>
+<ul>
+<li><strong>동적 양자화는 쓸모없다</strong>: <code>quantize_dynamic</code> 은 MatMul/Gemm/LSTM 만 바꾸고 <strong>Conv 를 건드리지 않는다</strong>.
+  이 모델은 1×1 Conv(GCN) + (3,1) 시간 Conv + 3×3 TXP-CNN Conv 5 개가 전부라 정적 양자화만 의미가 있다.</li>
+<li><code>quant_pre_process</code>(BN 접기·상수 접기) → <code>quantize_static(QDQ, per_channel, 활성 uint8 / 가중치 int8, MinMax)</code>.
+  보정은 ETH 학습 분할 무작위 200 장면을 서빙과 같은 <code>preprocess</code> 로 만든 (v, a).</li>
+<li>Entropy/Percentile 보정은 <strong>동적 N 에서 실패</strong>한다 — ORT 가 장면별 텐서를 <code>np.array(list)</code> 로 쌓다가 ragged shape 오류.
+  MinMax 만 가능. (고정 N 으로 패딩하면 되지만 그러면 라플라시안 통계가 달라진다.)</li>
+<li>두 변형을 만들어 ETH 테스트(70 장면, 181 보행자)로 비교하고 나은 쪽을 <code>social_stgcnn_int8.onnx</code> 로 둔다:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>결정적 μ ADE / FDE</th>
+<th>best-of-20 (seed 0) ADE / FDE</th>
+<th>Δ ADE (det / bo20)</th>
+<th>양자화 노드</th>
+<th>크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fp32 ONNX</td>
+<td>0.988 / 1.804</td>
+<td>0.718 / 1.187</td>
+<td>–</td>
+<td>–</td>
+<td>57.8 KB</td>
+</tr>
+<tr>
+<td>INT8 전체 (22 노드)</td>
+<td>1.077 / 1.879</td>
+<td>0.793 / 1.259</td>
+<td><strong>+0.089 / +0.075</strong></td>
+<td>22</td>
+<td>49.1 KB</td>
+</tr>
+<tr>
+<td>INT8 TXP-CNN 만 (ST-GCNN 8 노드 제외) ✔</td>
+<td>1.026 / 1.875</td>
+<td>0.752 / 1.258</td>
+<td><strong>+0.038 / +0.034</strong></td>
+<td>14</td>
+<td>43.8 KB</td>
+</tr>
+</tbody>
+</table>
+<p>ST-GCNN 블록을 제외하면 손실이 절반 이하로 준다. 입력이 상대 변위(대개 ±0.5 m)이고 Einsum 으로 정규화
+  라플라시안을 곱하는 구간이라 8-bit 격자(uint8 256 단계)가 보행자 간 미세한 속도 차이를 뭉갠다.
+  TXP-CNN 은 12 채널짜리 시간 외삽이라 상대적으로 둔감하다.
+* <strong>그런데 INT8 이 fp32 보다 느리다</strong> (N=20 모델 구간 0.19 → 0.23 ms, N=2 전체 0.72 → 0.84 ms). 이유: 연산량이
+  너무 작다. N=20 에서 전체 MAC 이 수십만 개라 fp32 로도 0.2 ms 인데, INT8 은 노드마다 Quantize/Dequantize 커널이
+  붙어 커널 호출 수가 늘고, per-channel 스케일 계산이 추가된다. VNNI 가 있어도 절약할 연산 자체가 없다.
+  INT8 이 이기는 조건은 (a) 수백만 MAC 이상의 큰 Conv, (b) 배치 처리, (c) 메모리 대역폭 병목 — 셋 다 해당하지 않는다.
+  <strong>서빙 기본값은 fp32</strong> 이고 INT8 은 "해 봤고 왜 안 되는지 안다" 는 기록으로 남긴다.</p>
+<h3 id="13-ort-onnx_backendpy">1.3 ORT 백엔드 (<code>onnx_backend.py</code>)</h3>
+<p><code>OnnxPredictor(path, threads=1)</code> — <code>Predictor</code> 프로토콜, 전처리/후처리는 <code>predictor.py</code> 의 <code>preprocess</code>/<code>finalize</code>
+를 그대로 재사용(백엔드가 바뀌어도 의미가 같아야 서빙·스트리밍에서 교체 가능). <code>intra_op_num_threads</code>,
+<code>ORT_ENABLE_ALL</code>(Conv+BN 접기 등), <code>warmup()</code> 으로 N=2/10/40 를 미리 돌려 첫 호출의 메모리 계획 비용을 뺀다.</p>
+<h2 id="2-resultsbenchmarkjson">2. 측정 표 (<code>results/benchmark.json</code>)</h2>
+<p>조건: 실제 테스트 장면 (ETH N=2, 5 · UNIV N=10, 20, 57), 웜업 20 회, 측정 200 회(설정당 10 s 상한 — 4 스레드
+torch 는 50~137 회에서 잘림, <code>n_iters</code> 에 기록), 배치 1, Intel Xeon 2.80 GHz 4 vCPU, torch 2.14 (CPU), ORT 1.30.
+지연은 <strong>전처리 + 모델 + 후처리</strong> 의 벽시계 시간.</p>
+<h3 id="21-k20-20-p50-p95-p99-ms">2.1 k=20 (평균 궤적 + 20 샘플, 서비스 기본) — p50 / p95 / p99 ms</h3>
+<table>
+<thead>
+<tr>
+<th>백엔드</th>
+<th>N=2</th>
+<th>N=5</th>
+<th>N=10</th>
+<th>N=20</th>
+<th>N=57</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>torch-eager /t1</td>
+<td>1.55 / 1.64 / 1.65</td>
+<td>1.70 / 1.79 / 1.82</td>
+<td>2.00 / 2.30 / 2.80</td>
+<td>2.32 / 3.16 / 3.56</td>
+<td>4.10 / 5.78 / 6.42</td>
+</tr>
+<tr>
+<td>torch-compile /t1</td>
+<td>1.19 / 1.32 / 1.36</td>
+<td>1.30 / 1.42 / 1.45</td>
+<td>1.50 / 1.59 / 1.60</td>
+<td>1.88 / 1.98 / 2.04</td>
+<td>3.58 / 3.93 / 4.22</td>
+</tr>
+<tr>
+<td><strong>onnx-fp32 /t1</strong></td>
+<td><strong>0.72 / 0.80 / 0.93</strong></td>
+<td><strong>0.90 / 0.98 / 1.09</strong></td>
+<td><strong>1.08 / 1.47 / 1.55</strong></td>
+<td><strong>1.40 / 1.49 / 1.55</strong></td>
+<td><strong>3.01 / 3.28 / 3.97</strong></td>
+</tr>
+<tr>
+<td>onnx-int8 /t1</td>
+<td>0.84 / 1.06 / 1.28</td>
+<td>0.93 / 1.02 / 1.13</td>
+<td>1.09 / 1.20 / 1.25</td>
+<td>1.45 / 1.55 / 1.81</td>
+<td>3.19 / 3.89 / 4.40</td>
+</tr>
+<tr>
+<td>torch-eager /t4 (OMP 기본)</td>
+<td>112 / 124 / 134</td>
+<td>112 / 120 / 144</td>
+<td>162 / 245 / 265</td>
+<td>180 / 204 / 250</td>
+<td>208 / 239 / 266</td>
+</tr>
+<tr>
+<td>torch-compile /t4 (OMP 기본)</td>
+<td>80 / 94 / 111</td>
+<td>84 / 128 / 150</td>
+<td>115 / 179 / 185</td>
+<td>148 / 164 / 166</td>
+<td>180 / 207 / 241</td>
+</tr>
+<tr>
+<td>torch-eager /t4 + <code>OMP_WAIT_POLICY=PASSIVE</code></td>
+<td>1.93 / 2.04 / 2.11</td>
+<td>2.06 / 2.25 / 2.53</td>
+<td>2.36 / 2.64 / 3.13</td>
+<td>2.74 / 2.93 / 3.37</td>
+<td>4.67 / 6.52 / 8.11</td>
+</tr>
+<tr>
+<td>onnx-fp32 /t4</td>
+<td>0.76 / 4.85 / 9.02</td>
+<td>0.98 / 5.08 / 5.39</td>
+<td>1.09 / 5.18 / 5.36</td>
+<td>1.53 / 9.57 / 9.95</td>
+<td>3.79 / 9.39 / 11.33</td>
+</tr>
+<tr>
+<td>onnx-int8 /t4</td>
+<td>0.87 / 4.94 / 6.52</td>
+<td>0.95 / 4.00 / 6.38</td>
+<td>1.11 / 5.10 / 5.36</td>
+<td>1.68 / 9.75 / 12.57</td>
+<td>3.65 / 9.96 / 12.97</td>
+</tr>
+</tbody>
+</table>
+<p>처리량(scenes/s, k=20, 1 스레드): onnx-fp32 1,379 (N=2) → 328 (N=57); torch-eager 644 → 233; torch-compile 826 → 275.</p>
+<h3 id="22-k0-p50-p95-ms">2.2 k=0 (평균 궤적만, 결정적 위험 판정용) — p50 / p95 ms</h3>
+<table>
+<thead>
+<tr>
+<th>백엔드 (1 스레드)</th>
+<th>N=2</th>
+<th>N=5</th>
+<th>N=10</th>
+<th>N=20</th>
+<th>N=57</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>torch-eager</td>
+<td>0.92 / 1.01</td>
+<td>0.97 / 1.06</td>
+<td>1.12 / 1.84</td>
+<td>1.20 / 1.65</td>
+<td>2.08 / 2.20</td>
+</tr>
+<tr>
+<td>torch-compile</td>
+<td>0.78 / 0.87</td>
+<td>0.80 / 0.89</td>
+<td>0.88 / 0.96</td>
+<td>1.04 / 1.18</td>
+<td>2.05 / 2.25</td>
+</tr>
+<tr>
+<td><strong>onnx-fp32</strong></td>
+<td><strong>0.27 / 0.38</strong></td>
+<td><strong>0.35 / 0.46</strong></td>
+<td><strong>0.39 / 0.50</strong></td>
+<td><strong>0.56 / 0.61</strong></td>
+<td><strong>1.52 / 1.64</strong></td>
+</tr>
+<tr>
+<td>onnx-int8</td>
+<td>0.33 / 0.44</td>
+<td>0.37 / 0.48</td>
+<td>0.46 / 0.51</td>
+<td>0.66 / 0.91</td>
+<td>1.61 / 1.73</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-n20-k20-1-p50-ms">2.3 어디에 시간이 가나 (N=20, k=20, 1 스레드, p50 ms)</h3>
+<table>
+<thead>
+<tr>
+<th>백엔드</th>
+<th>전처리</th>
+<th>모델</th>
+<th>후처리 (20 샘플)</th>
+<th>합계</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>torch-eager</td>
+<td>0.26</td>
+<td>0.85</td>
+<td>1.16</td>
+<td>2.32</td>
+</tr>
+<tr>
+<td>torch-compile</td>
+<td>0.27</td>
+<td>0.68</td>
+<td>0.90</td>
+<td>1.88</td>
+</tr>
+<tr>
+<td>onnx-fp32</td>
+<td>0.25</td>
+<td><strong>0.19</strong></td>
+<td>0.91</td>
+<td>1.40</td>
+</tr>
+<tr>
+<td>onnx-int8</td>
+<td>0.26</td>
+<td>0.23</td>
+<td>0.91</td>
+<td>1.45</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="breakdown" src="../results/figures/benchmark_breakdown_n20.png" /></p>
+<ul>
+<li>ORT 가 모델 구간을 0.85 → 0.19 ms 로 줄이자 <strong>후처리가 병목</strong>이 된다: <code>MultivariateNormal</code> 샘플링을 위한
+  2×2 촐레스키 + <code>randn</code> + 배치 행렬곱 + 누적합이 torch 소형 텐서 연산 십여 개라 커널 호출 오버헤드가 지배적이다.
+  k=0 이면 후처리는 0.06 ms.</li>
+<li>전처리 0.25 ms 는 N=20 에서 (8, 20, 20) 라플라시안 계산 — 이미 벡터화된 값이고 N² 로 는다(N=57: 1.0 ms).</li>
+</ul>
+<h3 id="24-z8-n10-k20">2.4 스트리밍 워크로드 — 프레임 하나에 Z=8 구역 (구역당 N=10, k=20, 작업자×차량 위험 포함)</h3>
+<table>
+<thead>
+<tr>
+<th>백엔드 (1 스레드)</th>
+<th>프레임 p50 / p95 ms</th>
+<th>구역당 p95 ms</th>
+<th>2.5 Hz 예산(400 ms) 안 최대 구역 수</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>torch-eager</td>
+<td>18.8 / 20.3</td>
+<td>2.54</td>
+<td>157</td>
+</tr>
+<tr>
+<td>torch-compile</td>
+<td>15.5 / 17.7</td>
+<td>2.21</td>
+<td>180</td>
+</tr>
+<tr>
+<td><strong>onnx-fp32</strong></td>
+<td><strong>11.9 / 12.9</strong></td>
+<td><strong>1.61</strong></td>
+<td><strong>248</strong></td>
+</tr>
+<tr>
+<td>onnx-int8</td>
+<td>12.2 / 13.7</td>
+<td>1.71</td>
+<td>234</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25-networkx-vs-numpy">2.5 전처리: 공식 구현(networkx) vs 벡터화 numpy</h3>
+<table>
+<thead>
+<tr>
+<th>N</th>
+<th>networkx 참조 (ms)</th>
+<th>numpy (ms)</th>
+<th>배율</th>
+<th>최대 절대 차이</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20</td>
+<td>17.27</td>
+<td>0.173</td>
+<td><strong>×100</strong></td>
+<td>8.9e-8</td>
+</tr>
+<tr>
+<td>57</td>
+<td>94.26</td>
+<td>1.002</td>
+<td><strong>×94</strong></td>
+<td>1.5e-6</td>
+</tr>
+</tbody>
+</table>
+<p>참조 구현(<code>benchmark.networkx_seq_to_graph</code>)은 공식 <code>seq_to_graph</code> 를 그대로 옮긴 것: 프레임마다 보행자 쌍
+이중 루프로 1/거리 를 채우고 <code>nx.normalized_laplacian_matrix(nx.from_numpy_array(A))</code>. 벡터화 버전은 <code>(T, N, N)</code>
+브로드캐스트 한 번 + 차수 정규화. ETH 학습 분할(2,785 장면) 캐시 생성이 분 단위에서 초 단위가 된 것도 이 차이다.
+스트리밍에서 이 값은 요청마다 드는 비용이라 "전처리를 지연에 포함" 하는 것이 정직한 벤치마크의 조건이다.</p>
+<h3 id="26">2.6 모델 파일</h3>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>크기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PyTorch 체크포인트 (<code>state_dict</code>)</td>
+<td>36.9 KB</td>
+</tr>
+<tr>
+<td><code>social_stgcnn_fp32.onnx</code></td>
+<td>57.8 KB (그래프 메타 + 7,563 파라미터 fp32)</td>
+</tr>
+<tr>
+<td><code>social_stgcnn_int8.onnx</code> (TXP-CNN 만)</td>
+<td>43.8 KB</td>
+</tr>
+<tr>
+<td><code>social_stgcnn_int8_full.onnx</code></td>
+<td>49.1 KB</td>
+</tr>
+</tbody>
+</table>
+<p>파라미터가 7.6K 라 파일 크기는 어느 쪽도 문제가 아니다 — INT8 의 "4 배 작아짐" 은 여기서 30 % 에 그친다
+(스케일·영점 텐서와 Q/DQ 노드 메타데이터가 가중치 절약분을 상쇄).</p>
+<h2 id="3-1">3. 스레드 이야기 — 왜 1 스레드인가</h2>
+<p><img alt="latency t4" src="../results/figures/benchmark_latency_t4.png" /></p>
+<ul>
+<li><strong>torch 4 스레드 = 100 배 느림</strong> (N=2 k=20: 1.55 → 112 ms). 이 크기의 연산에서 OpenMP 가 매 op 마다 4 스레드를
+  깨우고, 기본 스핀 대기(<code>OMP_WAIT_POLICY</code> 미설정 = ACTIVE 유사)가 4 vCPU 를 전부 점유한 채 서로를 기다린다.
+  CPU 쿼터(<code>cpu.max = max</code>)와 무관하게 재현되며, 학습 프로세스 3 개가 도는 이 환경에서는 더 심하다.
+  <code>OMP_WAIT_POLICY=PASSIVE</code> 로 <strong>2.7 ms</strong> (N=20, k=20) — 여전히 1 스레드(1.4 ms ORT / 2.3 ms eager)보다 느리다.
+  결론: 이 모델을 torch 로 서빙한다면 스레드 1 + 워커 프로세스 N 이 맞고, 환경변수를 반드시 고정한다
+  (<code>deploy/</code> 의 컨테이너 이미지 환경변수로 넣을 것).</li>
+<li><strong>ORT 4 스레드</strong>: p50 은 1 스레드와 같지만 p95 가 0.8 → 4.8 ms, N=20 에서 9.6 ms 로 꼬리가 길어진다.
+  ORT 는 스핀 대기 정책이 달라 100 배 병리는 없지만, 스레드풀 동기화 + 코어 경합이 꼬리로 나타난다.
+  <code>intra_op_num_threads=1</code> 이 기본값인 이유.</li>
+<li><strong>ORT 백엔드에서도 torch 스레드를 고정해야 한다.</strong> 후처리(샘플링)가 torch 라서, <code>OnnxPredictor</code> 는
+  <code>torch_threads=1</code> 로 <code>torch.set_num_threads</code> 를 건다. 벤치마크 초기 실행에서 이 고정이 빠진 채 앞선 torch 4 스레드
+  설정이 남아 "onnx/t4 k=20" 이 46~130 ms 로 잡혔고, 서빙에서도 같은 원인으로 핸들러 시간이 1.7 → 25 ms 였다.
+  둘 다 고친 뒤의 수치가 위 표다.</li>
+</ul>
+<h2 id="4">4. 논문 주장과 비교</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>논문 (Table 2)</th>
+<th>이 저장소</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>파라미터</td>
+<td>7.6K</td>
+<td>7,563 (동일 — 공식 체크포인트 로드 검증)</td>
+</tr>
+<tr>
+<td>추론 시간</td>
+<td>0.002 s/frame (하드웨어·배치·전처리 포함 여부 미명시)</td>
+<td>CPU 1 스레드, 배치 1, <strong>전처리·후처리 포함</strong>: N≤20 이면 k=20 로도 ≤ 1.4 ms(ORT), 모델만이면 0.19~0.56 ms. N=57 이면 3.0 ms</td>
+</tr>
+</tbody>
+</table>
+<p>논문 수치가 GPU 인지 CPU 인지, 전처리를 넣었는지가 없어 등호 비교는 불가능하다. 말할 수 있는 것: 파라미터 수가
+같은 모델을 CPU 에서, 전처리와 20 샘플 후처리까지 넣고도 논문의 2 ms 안에 들어온다는 점. 반대로 공식 코드의
+전처리(networkx)를 그대로 쓰면 N=20 에서 전처리만 17 ms 라 "0.002 s" 는 모델 forward 만의 숫자일 가능성이 높다.</p>
+<h2 id="5">5. 시도했지만 채택하지 않은 것 / 한계</h2>
+<ul>
+<li><strong>INT8</strong>: 위 §1.2. 속도 이득 0, 정확도 −4~−9 %. 채택 안 함(파일은 남김).</li>
+<li><strong>Entropy/Percentile 보정</strong>: 동적 N 에서 ORT 구현 오류. MinMax 만.</li>
+<li><strong>QOperator 포맷</strong>: QDQ 와 정확도·속도 동일, 파일만 10 KB 작음. QDQ 유지(툴체인 호환 범위가 넓다).</li>
+<li><strong>torch.compile</strong>: 20 % 이득에 16.8 s 콜드 컴파일(캐시 후 2.5 s). 서버 기동 지연과 <code>dynamic=True</code> 의 재컴파일 위험을
+  감수할 만큼 빠르지 않다 — ORT 가 컴파일 없이 더 빠르다.</li>
+<li><strong>후처리 최적화 (미착수)</strong>: 샘플링을 numpy 로 옮기고 2×2 촐레스키를 닫힌 식으로 바꾸면 0.9 → 0.1 ms 대가
+  가능해 보인다. <code>finalize</code> 는 평가 코드와 공유하는 계약이라 이번 범위에서는 건드리지 않았다.</li>
+<li><strong>배치 처리 (미측정)</strong>: 같은 N 의 장면을 <code>(B, ·, ·, N)</code> 으로 묶으면 커널 호출 오버헤드가 나뉘어 처리량이 오른다.
+  스트리밍은 구역별 N 이 제각각이라 배치 효과가 제한적이라 우선순위를 낮췄다.</li>
+<li><strong>측정 환경</strong>: 학습 3 개와 동시 실행(§0). 유휴 머신에서 다시 재면 4 스레드 수치가 특히 달라질 것이다.</li>
+<li><strong>GPU 미측정</strong>: 이 환경에 GPU 가 없다. ONNX 는 <code>CUDAExecutionProvider</code> 로 그대로 쓸 수 있다.</li>
+</ul>
+<h2 id="6">6. 재현</h2>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">FORESIGHT_ROOT</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
+foresight<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--ckpt<span class="w"> </span>results/checkpoints/eth/seed0/best.pth<span class="w"> </span>--out<span class="w"> </span>artifacts/onnx<span class="w">   </span><span class="c1"># fp32 + INT8 2 종 + manifest</span>
+foresight<span class="w"> </span>benchmark<span class="w"> </span>--out<span class="w"> </span>results/benchmark.json<span class="w">                                       </span><span class="c1"># 전체 (~5 분)</span>
+foresight<span class="w"> </span>benchmark<span class="w"> </span>--quick<span class="w">                                                            </span><span class="c1"># CI (~45 s)</span>
+pytest<span class="w"> </span>tests/test_onnx_parity.py<span class="w"> </span>-q
+</code></pre></div>
+<p><code>artifacts/onnx/manifest.json</code> 의 <code>source_checkpoint</code>/<code>source_sha256</code> 이 어느 체크포인트로 만든 산출물인지 알려 준다.
+현재 저장된 산출물과 위 표는 <strong>공식 ETH 체크포인트</strong>(<code>assets/official_checkpoints/social-stgcnn-eth.pth</code>)로 만든
+것이다 — 벤치마크 시점에 자체 학습 체크포인트가 아직 학습 중(매 분 갱신)이어서 재현 가능한 기준을 택했다.
+학습이 끝나면 <code>foresight export</code> 기본값(<code>results/checkpoints/eth/seed0/best.pth</code>)으로 다시 만들면 된다;
+지연 수치는 가중치와 무관하고 INT8 정확도 델타만 달라진다.</p>
+<h2 id="tensorflow-savedmodel">부록 · TensorFlow SavedModel 경로</h2>
+<p>서빙 팀이 TF Serving 이나 TFLite 를 쓰는 경우를 위해 같은 가중치를 TensorFlow 연산으로 다시 구성했다(<code>src/foresight/models/tf_port.py</code>).
+학습은 PyTorch 로만 하고, 이식은 추론 전용(가중치 동결)이다. 공식 코드의 <code>view</code> 축 교환은 NCHW 로 돌린 뒤 <code>tf.reshape</code> 로 재해석해
+torch 와 같은 메모리 해석을 얻고, BatchNorm 은 eval 아핀으로 접는다. CPU 의 <code>tf.nn.conv2d</code> 가 NHWC 만 받으므로 내부 배치는 NHWC 다.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">foresight.demo.replay</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_weights</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">foresight.eval.evaluate</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">foresight.models.tf_port</span><span class="w"> </span><span class="kn">import</span> <span class="n">SocialSTGCNNTF</span>
+
+<span class="n">weights</span> <span class="o">=</span> <span class="n">export_weights</span><span class="p">(</span><span class="n">load_model</span><span class="p">(</span><span class="s2">"results/checkpoints/rtls-scratch-fast/best.pth"</span><span class="p">))</span>
+<span class="n">SocialSTGCNNTF</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">export_saved_model</span><span class="p">(</span>
+    <span class="s2">"artifacts/savedmodel"</span>
+<span class="p">)</span>  <span class="c1"># 서명: v (1,2,8,None), a (8,None,None)</span>
+</code></pre></div>
+<p><code>tests/test_tf_parity.py</code> 가 PyTorch 출력과 1e-4 안에서 같은지, SavedModel 을 다시 읽어도 같은지 확인한다(CI <code>tf-parity</code> 잡).
+같은 방식의 이식이 두 개 더 있다: ONNX(§1, 서빙 기본 경로)와 순수 JavaScript(<code>demo/foresight.js</code>, 브라우저 데모).
+세 이식이 모두 같은 골든 입력에서 같은 출력을 내는 것이 "모델을 이해하고 있다"는 가장 싼 증거였다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "content.code.copy", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
