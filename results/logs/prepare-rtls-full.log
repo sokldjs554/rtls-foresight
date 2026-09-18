@@ -1,7 +1,0 @@
-20:34:31 INFO foresight.data.rtls_pipeline: resample: 12 hour partitions sunk
-20:34:31 INFO foresight.data.rtls_pipeline: resample: 85423957 raw → 85057196 clean → 21576189 frames in 45.9s
-20:34:56 INFO foresight.data.rtls_pipeline: train: 443180 scenes, 3032179 agent-windows
-20:35:07 INFO foresight.data.rtls_pipeline: val: 378260 scenes, 2596350 agent-windows
-20:35:16 INFO foresight.data.rtls_pipeline: test: 378943 scenes, 2595497 agent-windows
-20:35:46 INFO foresight.data.rtls_pipeline: pipeline done in 91.5s, peak RSS 2292 MB
-20:35:46 INFO foresight.cli: prepare-rtls: raw 85423957 -> clean 85057196 -> frames 21576189 rows; scenes {'train': 443180, 'val': 378260, 'test': 378943}; peak RSS 2292 MB

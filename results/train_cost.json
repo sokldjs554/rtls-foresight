@@ -1,0 +1,40 @@
+{
+ "splits": {
+  "eth": {
+   "scenes": 2785,
+   "epoch_sec_mean": 13.181113129667978,
+   "total_min": 54.921304706949904,
+   "best_epoch": 224,
+   "best_val_loss": -1.8791366616884868
+  },
+  "hotel": {
+   "scenes": 2594,
+   "epoch_sec_mean": 11.902750345064009,
+   "total_min": 49.59479310443337,
+   "best_epoch": 177,
+   "best_val_loss": -1.7884723901748658
+  },
+  "univ": {
+   "scenes": 2076,
+   "epoch_sec_mean": 8.896227259464007,
+   "total_min": 37.06761358110003,
+   "best_epoch": 156,
+   "best_val_loss": -1.6012138605117798
+  },
+  "zara1": {
+   "scenes": 2322,
+   "epoch_sec_mean": 10.527390915272026,
+   "total_min": 43.86412881363344,
+   "best_epoch": 224,
+   "best_val_loss": -1.7792254209518432
+  },
+  "zara2": {
+   "scenes": 2112,
+   "epoch_sec_mean": 8.239232676131994,
+   "total_min": 34.330136150549976,
+   "best_epoch": 151,
+   "best_val_loss": -1.5290062129497528
+  }
+ },
+ "table_markdown": "| 분할 | 학습 장면 | epoch 평균 (s) | 250 epoch 합계 (min) | 최적 epoch | 최종 검증 NLL |\n|---|---|---|---|---|---|\n| eth | 2,785 | 13.2 | 55 | 224 | -1.879 |\n| hotel | 2,594 | 11.9 | 50 | 177 | -1.788 |\n| univ | 2,076 | 8.9 | 37 | 156 | -1.601 |\n| zara1 | 2,322 | 10.5 | 44 | 224 | -1.779 |\n| zara2 | 2,112 | 8.2 | 34 | 151 | -1.529 |"
+}

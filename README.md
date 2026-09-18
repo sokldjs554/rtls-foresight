@@ -50,7 +50,14 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 ### 4.1 논문 재현 (Social-STGCNN Table 1, ADE/FDE m, best-of-20)
 
 <!-- REPRODUCTION_TABLE:START -->
-(학습 완료 후 `foresight evaluate` 가 채운다)
+| 분할 | 논문 (ADE/FDE) | 공식 ckpt 재평가 | 우리 학습 best-of-20 | joint best-of-20 | 결정적(μ) | CVM | CVM-S(20) |
+|---|---|---|---|---|---|---|---|
+| eth | 0.64/1.11 | 0.73/1.21 | 0.74±0.01/1.32±0.01 | 0.87/1.72 | 1.01/1.99 | 1.00/2.23 | 0.85/1.89 |
+| hotel | 0.49/0.85 | 0.41/0.69 | 0.46±0.00/0.77±0.01 | 0.62/1.20 | 0.72/1.42 | 0.32/0.62 | 0.24/0.46 |
+| univ | 0.44/0.79 | 0.49/0.91 | 0.47±0.00/0.86±0.00 | 0.69/1.32 | 0.68/1.34 | 0.52/1.17 | 0.39/0.82 |
+| zara1 | 0.34/0.53 | 0.33/0.52 | 0.34±0.00/0.54±0.00 | 0.48/0.92 | 0.54/1.08 | 0.43/0.96 | 0.31/0.62 |
+| zara2 | 0.30/0.48 | 0.30/0.48 | 0.33±0.00/0.55±0.00 | 0.49/0.93 | 0.48/0.97 | 0.33/0.73 | 0.23/0.48 |
+| **avg** | **0.44/0.75** | 0.45/0.76 | **0.47/0.81** | 0.63/1.22 | 0.69/1.36 | 0.52/1.14 | 0.40/0.85 |
 <!-- REPRODUCTION_TABLE:END -->
 
 세 열을 같이 읽어야 한다. **논문**은 저자가 보고한 값, **공식 ckpt 재평가**는 저자의 가중치를 이 저장소의 평가기로 돌린 값,
@@ -62,9 +69,9 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 
 | 프로토콜 | 우리 학습 | 등속 모델(CVM) |
 |---|---|---|
-| per-agent best-of-20 (논문) | <!-- num:reproduction.ours.avg.best_of_k_per_agent.ade -->0.50<!-- /num --> / <!-- num:reproduction.ours.avg.best_of_k_per_agent.fde -->0.81<!-- /num --> | CVM-S(20): <!-- num:reproduction.ours.avg.cvm_sampled.ade -->0.40<!-- /num --> / <!-- num:reproduction.ours.avg.cvm_sampled.fde -->0.85<!-- /num --> |
-| joint best-of-20 (장면 단위 한 샘플) | <!-- num:reproduction.ours.avg.best_of_k_joint.ade -->0.70<!-- /num --> / <!-- num:reproduction.ours.avg.best_of_k_joint.fde -->1.31<!-- /num --> | – |
-| 결정적 μ (샘플 없음) | <!-- num:reproduction.ours.avg.deterministic.ade -->0.74<!-- /num --> / <!-- num:reproduction.ours.avg.deterministic.fde -->1.45<!-- /num --> | <!-- num:reproduction.ours.avg.cvm.ade -->0.52<!-- /num --> / <!-- num:reproduction.ours.avg.cvm.fde -->1.14<!-- /num --> |
+| per-agent best-of-20 (논문) | <!-- num:reproduction.ours.avg.best_of_k_per_agent.ade -->0.47<!-- /num --> / <!-- num:reproduction.ours.avg.best_of_k_per_agent.fde -->0.81<!-- /num --> | CVM-S(20): <!-- num:reproduction.ours.avg.cvm_sampled.ade -->0.40<!-- /num --> / <!-- num:reproduction.ours.avg.cvm_sampled.fde -->0.85<!-- /num --> |
+| joint best-of-20 (장면 단위 한 샘플) | <!-- num:reproduction.ours.avg.best_of_k_joint.ade -->0.63<!-- /num --> / <!-- num:reproduction.ours.avg.best_of_k_joint.fde -->1.22<!-- /num --> | – |
+| 결정적 μ (샘플 없음) | <!-- num:reproduction.ours.avg.deterministic.ade -->0.69<!-- /num --> / <!-- num:reproduction.ours.avg.deterministic.fde -->1.36<!-- /num --> | <!-- num:reproduction.ours.avg.cvm.ade -->0.52<!-- /num --> / <!-- num:reproduction.ours.avg.cvm.fde -->1.14<!-- /num --> |
 
 결정적 예측만 보면 학습 모델이 등속 모델보다 **나쁘다**. 모델의 가치는 분포에 있고, 그래서 충돌 위험은 μ 가 아니라 같은 미래(joint sample)의
 최소 거리로 계산한다. 논의: [`docs/evaluation_methodology.md`](docs/evaluation_methodology.md)

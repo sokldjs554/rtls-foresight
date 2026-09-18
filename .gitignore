@@ -45,3 +45,7 @@ results/logs-*.txt
 *.tfstate
 *.tfstate.backup
 site/
+
+# 재시작용 상태(옵티마이저·RNG 포함)와 실행 로그는 커밋하지 않는다 — 기록은 metrics.json/history.json + MLflow
+**/last.pth
+results/logs/
