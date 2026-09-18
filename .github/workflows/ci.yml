@@ -47,7 +47,7 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[serve,dev]"
       - name: Unit tests (공식 로더 동일성·골든 출력·ONNX 패리티·API·스트림)
-        run: pytest -q -p no:warnings -m "not slow and not docker"
+        run: pytest -q -p no:warnings
       - name: Smoke pipeline (다운로드 → 준비 → 2 epoch 학습 → 시뮬레이션 → RTLS 준비 → 내보내기 → 빠른 벤치)
         if: matrix.python == '3.11'
         run: |

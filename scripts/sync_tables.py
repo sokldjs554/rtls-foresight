@@ -1,7 +1,7 @@
 """results/*.json 의 마크다운 표를 README/docs 의 마커 블록에 주입한다 (숫자 마커는 tools/check_readme_numbers.py).
 
-    python scripts/sync_tables.py            # 주입
-    python scripts/sync_tables.py --check    # 최신인지 검사 (CI)
+python scripts/sync_tables.py            # 주입
+python scripts/sync_tables.py --check    # 최신인지 검사 (CI)
 """
 
 from __future__ import annotations

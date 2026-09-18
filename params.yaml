@@ -2,7 +2,7 @@
 seed: 0
 train: paper          # paper | fast | smoke
 rtls:
-  profile: small      # smoke | small | full
+  profile: full       # smoke | small | full — 충돌 경보 평가는 full(200 태그 × 12 h) 이어야 양성이 충분하다
   train_skip: 4
   d_safe: 1.0
   transfer_limit_scenes: 60000

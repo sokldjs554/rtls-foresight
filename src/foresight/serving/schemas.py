@@ -13,8 +13,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 OBS_LEN = 8
 PRED_LEN = 12
-MAX_AGENTS = 200
-MAX_K = 100
+MAX_AGENTS = 100  # 한 요청의 최악 메모리(작업자×차량×K×12 스텝)를 수십 MB 로 묶는다
+MAX_K = 50
+MAX_ABS_COORD = 1.0e5  # m — 이보다 크면 float32 가 cm 정밀도를 잃는다
 
 Point = Annotated[list[float], Field(min_length=2, max_length=2)]
 
@@ -36,6 +37,8 @@ class AgentIn(BaseModel):
         for p in v:
             if any(x != x or abs(x) == float("inf") for x in p):
                 raise ValueError("obs contains NaN/inf")
+            if any(abs(x) > MAX_ABS_COORD for x in p):
+                raise ValueError(f"obs coordinate exceeds ±{MAX_ABS_COORD:g} m")
         return v
 
 
@@ -44,7 +47,7 @@ class PredictRequest(BaseModel):
 
     agents: list[AgentIn] = Field(min_length=1, max_length=MAX_AGENTS)
     k: int = Field(default=20, ge=0, le=MAX_K, description="샘플 수 (0 이면 평균 궤적만)")
-    seed: int | None = Field(default=None, description="샘플링 시드 (재현용)")
+    seed: int | None = Field(default=None, ge=0, le=2**31 - 1, description="샘플링 시드 (재현용)")
     include_samples: bool = Field(default=False, description="응답에 K 개 샘플 궤적을 포함할지")
 
     @field_validator("agents")

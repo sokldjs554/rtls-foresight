@@ -95,8 +95,12 @@ $$
   (전체 지연의 절반 가까이, `inference_optimization.md` 참조)이 없고, 분포가 좁을 때는 MC 와 같은 답을 준다.
   `/risk` 요청에 이 옵션이 있는 이유다.
 
-`d_safe` 기본 1.0 m 는 RTLS near-miss 라벨 정의(`CLI_CONTRACT.md`)와 같다. UWB 위치 오차 σ≈0.15 m 를
+`d_safe` 기본 1.0 m 는 RTLS near-miss 라벨 정의(`cli.md`)와 같다. UWB 위치 오차 σ≈0.15 m 를
 감안하면 0.7 m 이하로 낮추는 것은 의미가 없다.
+
+**오프라인 평가에서의 양성 정의** (`foresight.eval.collision`): 예측 시점에 d_safe 밖에 있던 (작업자, 차량) 쌍이 4.8 s 안에
+d_safe 안으로 들어오면 양성. 예측 시점에 이미 d_safe 안인 쌍은 "사전 경보"의 대상이 아니므로 평가에서 제외하고 개수만 보고한다.
+부분 샘플(`--every k`) 평가의 오경보/시간은 1/k 로 외삽한다.
 
 ## 4. 경보 정책 (`AlertPolicy`)
 

@@ -29,7 +29,8 @@ stages:
       cmd: foresight train dataset=${item} train=${train} seed=${seed} threads=1
       params: [seed, train]
       deps: ["data/processed/ethucy/${item}", src/foresight/models, src/foresight/train, configs]
-      outs: ["results/checkpoints/${item}/seed${seed}/best.pth"]
+      outs:
+        - results/checkpoints/${item}/seed${seed}/best.pth: { cache: false }   # 37 KB, git 으로 추적
       metrics:
         - results/checkpoints/${item}/seed${seed}/metrics.json: { cache: false }
 
@@ -47,7 +48,7 @@ stages:
       - results/reproduction.json: { cache: false }
 
   rtls_transfer:
-    cmd: LIMIT=${rtls.transfer_limit_scenes} EVERY=${rtls.eval_every} DATA=data/processed/rtls scripts/run_rtls_transfer.sh
+    cmd: LIMIT=${rtls.transfer_limit_scenes} EVERY=${rtls.eval_every} DATA=data/processed/rtls scripts/run_rtls_transfer.sh   # rtls.profile=full 권장 (small 은 near-miss 가 너무 적다)
     params: [rtls.transfer_limit_scenes, rtls.eval_every, rtls.d_safe]
     deps: [data/processed/rtls, "results/checkpoints/eth/seed${seed}/best.pth", src/foresight/eval/collision.py, src/foresight/serving/risk.py]
     metrics:
@@ -58,7 +59,9 @@ stages:
     cmd: foresight export --ckpt results/checkpoints/eth/seed${seed}/best.pth --out artifacts/onnx
     params: [export.int8]
     deps: ["results/checkpoints/eth/seed${seed}/best.pth", src/foresight/inference/export.py, src/foresight/inference/quantize.py]
-    outs: [artifacts/onnx/social_stgcnn_fp32.onnx, artifacts/onnx/social_stgcnn_int8.onnx]
+    outs:
+      - artifacts/onnx/social_stgcnn_fp32.onnx: { cache: false }
+      - artifacts/onnx/social_stgcnn_int8.onnx: { cache: false }
     metrics:
       - artifacts/onnx/manifest.json: { cache: false }
 

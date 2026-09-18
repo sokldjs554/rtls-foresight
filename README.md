@@ -121,16 +121,17 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 ## 6. 실행
 
 ```bash
-make setup                       # venv + CPU torch + 의존성
+make setup && source .venv/bin/activate          # venv + CPU torch + 의존성 (이후 명령은 venv 안에서)
 foresight download && foresight prepare          # ETH/UCY (14 MB, sha256 검증) → 장면 npz
 foresight train dataset=eth train=paper seed=0   # 논문 설정 학습 (CPU 1스레드 ~40분) — MLflow sqlite:///mlflow.db
 scripts/train_all.sh                             # 5분할 병렬
 foresight evaluate                               # 재현표 results/reproduction.json
-foresight simulate --profile small && foresight prepare-rtls   # 합성 RTLS → 장면
+foresight simulate --profile full && foresight prepare-rtls --in-dir data/rtls/full/raw   # 합성 RTLS 85M 행 → 장면 (small 은 수 초 스모크)
 foresight export && foresight benchmark          # ONNX/INT8 + 벤치마크
 foresight serve --backend onnx                   # http://localhost:8000/docs
 foresight stream --source replay --replay-file data/processed/rtls/test.npz
-docker compose up --build                        # api + mlflow + minio + redpanda + replay/consumer
+docker compose up --build                        # api + mlflow + minio
+docker compose --profile stream up --build       # + redpanda + 재생 생산자 + 스트리밍 소비자
 ```
 
 ## 7. 실험 기록
@@ -143,8 +144,8 @@ docker compose up --build                        # api + mlflow + minio + redpan
   세 곳에서 서술과 코드가 달랐고, 수치는 코드에서 나왔다. 코드 동작을 기본값으로, 서술을 ablation 으로 두니 차이가 설명된다.
 - **비트 단위 동일성 테스트가 가장 싼 보험이다.** 커널 거리를 float64 로 계산하면 특정 장면에서 라플라시안이 완전히 달라지는데,
   공식 로더와의 동일성 검사가 없었다면 "학습이 조금 다르게 됐나 보다"로 묻혔을 것이다.
-- **공식 체크포인트 + 같은 평가기 열이 없으면 학습 결과를 해석할 수 없다.** 분할별로 논문과 다른 방향의 차이가 났지만
-  공식 가중치도 같은 방향으로 달랐다 — 우리 학습의 문제가 아니라 평가·데이터 쪽 분산이다.
+- **공식 체크포인트 + 같은 평가기 열이 없으면 학습 결과를 해석할 수 없다.** hotel 은 논문보다 좋고 univ 는 나쁜데, 저자의 가중치도
+  같은 방향으로 달랐다 — 우리 학습의 문제가 아니라 평가 프로토콜·테스트 분할 크기가 만드는 분산이다.
 - **best-of-20 은 오라클이고, 결정적 평균은 등속 모델보다 나쁘다.** 모델의 가치는 "정확한 한 점"이 아니라 "보정된 분포"에 있고,
   그래서 충돌 위험은 평균이 아니라 같은 미래(joint sample)의 최소 거리로 계산한다.
 - **스트리밍이라고 메모리가 상한되는 것은 아니다.** `unique` + `group_by` 가 85M 행에서 10.9 GB 를 쌓아 OOM 으로 죽었다.

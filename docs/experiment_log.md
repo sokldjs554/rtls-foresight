@@ -30,7 +30,8 @@ MLflow 실험 이름: `social-stgcnn` (본 실험), `social-stgcnn-ablation`, `s
 - 결과와 논의: `docs/paper_reproduction.md`.
 
 ## E4 · 시드 분산
-- 학습 시드 0/1/2 × 평가 시드 0/1/2. best-of-20 의 표준편차를 표에 함께 적는다.
+- 재현표의 ± 는 **평가(샘플링) 시드 3개**의 표준편차다. **학습 시드** 1·2 는 별도 실행(`SEEDS="1 2" scripts/train_all.sh`)이며
+  결과는 `results/seeds.json` 과 `docs/paper_reproduction.md` 의 시드 표에 넣는다.
 
 ## E5 · Ablation (eth)
 - `permute`(논문 그림) vs `view`(공식 코드), 위치 커널 vs 속도 커널, 버킷 배치(BN 통계 배치 단위) vs 장면 배치, 로그 영역 NLL vs 클램프 NLL.

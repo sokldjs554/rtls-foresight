@@ -43,6 +43,16 @@ INT8_NAME = "social_stgcnn_int8.onnx"
 OFFICIAL_ETH = Path("assets/official_checkpoints/social-stgcnn-eth.pth")
 
 
+def _relpath(p: Path | str) -> str:
+    """저장소 루트 기준 상대 경로 (매니페스트에 로컬 절대 경로가 남지 않게)."""
+    from foresight.utils import project_root
+
+    try:
+        return str(Path(p).resolve().relative_to(project_root()))
+    except ValueError:
+        return str(p)
+
+
 def sha256_of(path: Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -214,7 +224,7 @@ def export_all(
     info = export_onnx(model, fp32)
     parity = check_parity(model, fp32, parity_scenes(data_dir))
     manifest: dict[str, object] = {
-        "source_checkpoint": str(ckpt),
+        "source_checkpoint": _relpath(ckpt),
         "source_sha256": sha256_of(ckpt),
         "param_count": model.num_parameters(),
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),

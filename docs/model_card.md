@@ -9,7 +9,7 @@
 | 출력 | 12 프레임(4.8 s) 상대 변위의 이변량 가우시안 파라미터 (μx, μy, log σx, log σy, atanh ρ) |
 | 손실 | 이변량 가우시안 NLL (공식 코드와 같은 pdf 클램프 경로) |
 | 학습 | SGD lr 0.01, 250 epoch, StepLR(150, ×0.2), 장면 128개 누적, 검증 손실 최소 체크포인트 |
-| 원 논문 | Mohamed, Qian, Elhoseiny, Claudel. *Social-STGCNN*, CVPR 2020 |
+| 원 논문 | Mohamed, Qian, Elhoseiny, Claudel. *Social-STGCNN*, CVPR 2020 — 공식 체크포인트 5개를 `assets/official_checkpoints/` 에 원 저장소 라이선스(`LICENSE.social-stgcnn`)와 함께 vendoring |
 | 구현 | `src/foresight/models/social_stgcnn.py` — 공식 코드의 `view` 축 교환·속도 커널을 기본값으로 재현 (ADR-0002) |
 
 ## 학습 데이터

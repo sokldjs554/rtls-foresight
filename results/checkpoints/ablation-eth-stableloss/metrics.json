@@ -1,0 +1,120 @@
+{
+ "run_id": "c1978eca8dfa46b691d6b32a3b5a3715",
+ "run_name": "ablation-eth-stableloss",
+ "dataset": "eth",
+ "seed": 0,
+ "model_uri": "models:/m-877954dfc16045bda2b4b3e43e5872f9",
+ "best_epoch": 232,
+ "best_val_loss": -1.888937493165334,
+ "eval": {
+  "split": "eth",
+  "n_scenes": 70,
+  "n_agents": 181,
+  "k": 20,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "best_of_k_per_agent": {
+   "ade": 0.7360071142514547,
+   "fde": 1.2629295587539673
+  },
+  "best_of_k_per_agent_std": {
+   "ade": 0.008645851424138318,
+   "fde": 0.014863554741862205
+  },
+  "best_of_k_joint": {
+   "ade": 0.8736137946446737,
+   "fde": 1.7035963535308838
+  },
+  "deterministic": {
+   "ade": 1.0237258672714233,
+   "fde": 1.9694969654083252,
+   "n_agents": 181
+  },
+  "cvm": {
+   "ade": 0.995402991771698,
+   "fde": 2.2343809604644775,
+   "n_agents": 181
+  },
+  "cvm_sampled": {
+   "ade": 0.8529824614524841,
+   "fde": 1.8867321014404297
+  }
+ },
+ "metrics": {
+  "test_ade_bo20": 0.7360071142514547,
+  "test_fde_bo20": 1.2629295587539673,
+  "test_ade_bo20_std": 0.008645851424138318,
+  "test_fde_bo20_std": 0.014863554741862205,
+  "test_ade_joint": 0.8736137946446737,
+  "test_fde_joint": 1.7035963535308838,
+  "test_ade_det": 1.0237258672714233,
+  "test_fde_det": 1.9694969654083252,
+  "test_ade_cvm": 0.995402991771698,
+  "test_fde_cvm": 2.2343809604644775,
+  "best_epoch": 232,
+  "best_val_loss": -1.888937493165334
+ },
+ "config": {
+  "dataset": {
+   "name": "eth",
+   "data_dir": "data/processed/ethucy/eth",
+   "train": "data/processed/ethucy/eth/train.npz",
+   "val": "data/processed/ethucy/eth/val.npz",
+   "test": "data/processed/ethucy/eth/test.npz",
+   "limit_scenes": null
+  },
+  "model": {
+   "n_stgcnn": 1,
+   "n_txpcnn": 5,
+   "in_channels": 2,
+   "out_channels": 5,
+   "obs_len": 8,
+   "pred_len": 12,
+   "t_kernel": 3,
+   "time_channel_swap": "view",
+   "graph": {
+    "kernel": "velocity",
+    "normalize": true
+   }
+  },
+  "train": {
+   "epochs": 250,
+   "lr": 0.01,
+   "optimizer": "sgd",
+   "batch_size": 128,
+   "lr_step": 150,
+   "lr_gamma": 0.2,
+   "clip_grad": null,
+   "mode": "scene",
+   "bucket_batch": 32,
+   "loss_exact": false,
+   "val_every": 1,
+   "log_every": 50,
+   "save_best": true,
+   "name": "paper"
+  },
+  "seed": 0,
+  "threads": 1,
+  "out_dir": "results/checkpoints",
+  "run_name": "ablation-eth-stableloss",
+  "init_from": null,
+  "resume": true,
+  "mlflow": {
+   "tracking_uri": "sqlite:///mlflow.db",
+   "experiment": "social-stgcnn-ablation",
+   "register": true
+  },
+  "eval": {
+   "k": 20,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "official_ckpt": null
+  }
+ }
+}

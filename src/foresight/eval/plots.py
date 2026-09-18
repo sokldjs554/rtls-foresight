@@ -56,7 +56,7 @@ def plot_scene(
         if gt_abs is not None:
             ax.plot(gt_abs[i, :, 0], gt_abs[i, :, 1], color=C_GT, lw=1.5, ls="--", zorder=2)
         ax.plot(mean_abs[i, :, 0], mean_abs[i, :, 1], color=col, lw=2, zorder=4)
-    ax.set_aspect("equal")
+    ax.set_aspect("equal", adjustable="datalim")  # 격자 안에서 축 상자 크기를 유지한 채 등축
     ax.set_title(title, fontsize=10)
     ax.set_xlabel("x (m)")
     ax.set_ylabel("y (m)")

@@ -236,7 +236,7 @@ def create_app(backend: str = "onnx", threads: int | None = None) -> FastAPI:
             alerts=alerts,
             n_workers=len(rm.worker_idx),
             n_vehicles=len(rm.vehicle_idx),
-            k=rm.k if not req.deterministic else 0,
+            k=0 if (req.deterministic or req.k == 0) else rm.k,
             d_safe=req.d_safe,
             threshold=req.threshold,
             backend=predictor.name,
@@ -270,3 +270,10 @@ def create_app(backend: str = "onnx", threads: int | None = None) -> FastAPI:
 
 def get_app() -> FastAPI:  # uvicorn --factory foresight.serving.app:get_app
     return create_app(os.environ.get("FORESIGHT_BACKEND", "onnx"))
+
+
+def app_from_env():
+    """환경변수 FORESIGHT_BACKEND 로 앱을 만든다 (`foresight serve --workers N`, Docker CMD)."""
+    import os
+
+    return create_app(backend=os.environ.get("FORESIGHT_BACKEND", "onnx"))

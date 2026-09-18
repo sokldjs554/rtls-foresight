@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from dataclasses import asdict
@@ -107,8 +108,9 @@ def run_epoch(
                     if tcfg.clip_grad:
                         torch.nn.utils.clip_grad_norm_(model.parameters(), float(tcfg.clip_grad))
                     optimizer.step()  # type: ignore[union-attr]
-                total += float(mean_loss.item())
-                n_batches += 1
+                # 학습: 옵티마이저 스텝 평균 (공식 코드와 같은 로그). 검증: 장면 가중 평균 (자투리 배치가 과대 반영되지 않게)
+                total += float(mean_loss.item()) * (acc_n if not train else 1)
+                n_batches += acc_n if not train else 1
                 step += 1
                 if train and tcfg.log_every and step % int(tcfg.log_every) == 0:
                     log.info("epoch %d step %d loss %.4f", epoch, step, total / n_batches)
@@ -118,9 +120,11 @@ def run_epoch(
             if train:
                 optimizer.zero_grad()  # type: ignore[union-attr]
                 mean_loss.backward()
+                if tcfg.clip_grad:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), float(tcfg.clip_grad))
                 optimizer.step()  # type: ignore[union-attr]
-            total += float(mean_loss.item())
-            n_batches += 1
+            total += float(mean_loss.item()) * (acc_n if not train else 1)
+            n_batches += acc_n if not train else 1
     return total / max(n_batches, 1)
 
 
@@ -182,10 +186,35 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
     best_path = out_dir / "best.pth"
     last_path = out_dir / "last.pth"
     start_epoch, resume_run_id = 0, None
+    # 설정 지문: 같은 out_dir 에 다른 설정(paper vs fast, 다른 데이터)의 last.pth 가 남아 있으면 이어 붙지 않는다.
+    cfg_fingerprint = hashlib.sha256(
+        json.dumps(OmegaConf.to_container(cfg, resolve=True), sort_keys=True, default=str).encode()
+    ).hexdigest()[:16]
     if bool(cfg.get("resume", True)) and last_path.exists():
         # 재시작 안전성: 컨테이너가 죽어도 마지막 epoch 부터 같은 MLflow run 에 이어 붙는다
         # (모델·옵티마이저·스케줄러·RNG·기록을 복원하므로 처음부터 돌린 것과 같은 궤적을 따른다).
         ck = torch.load(last_path, map_location="cpu", weights_only=False)
+        if ck.get("config_fingerprint") != cfg_fingerprint:
+            log.warning(
+                "last.pth was written by a different config (%s != %s); starting fresh",
+                ck.get("config_fingerprint"),
+                cfg_fingerprint,
+            )
+            ck = None
+        elif ck.get("mlflow_run_id"):
+            try:  # 새 클론·다른 tracking 스토어에는 run 이 없다 → 새 run 으로 이어 붙인다
+                mlflow.set_tracking_uri(str(cfg.mlflow.tracking_uri))
+                mlflow.get_run(ck["mlflow_run_id"])
+            except Exception:
+                log.warning(
+                    "MLflow run %s not found in %s; continuing in a new run",
+                    ck["mlflow_run_id"],
+                    cfg.mlflow.tracking_uri,
+                )
+                ck["mlflow_run_id"] = None
+    else:
+        ck = None
+    if ck is not None:
         model.load_state_dict(ck["model_state"])
         optimizer.load_state_dict(ck["optimizer_state"])
         scheduler.load_state_dict(ck["scheduler_state"])
@@ -193,6 +222,10 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
         torch.set_rng_state(ck["torch_rng"])
         history, best_val, best_epoch = ck["history"], ck["best_val"], ck["best_epoch"]
         start_epoch, resume_run_id = int(ck["epoch"]) + 1, ck.get("mlflow_run_id")
+        if start_epoch > int(cfg.train.epochs):
+            raise RuntimeError(
+                f"{last_path} already holds {start_epoch} epochs >= train.epochs={cfg.train.epochs}; delete it or raise epochs"
+            )
         log.info(
             "resume from %s: epoch %d, best val %.4f @%d",
             last_path,
@@ -263,9 +296,13 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
                     "best_epoch": best_epoch,
                     "epoch": epoch,
                     "mlflow_run_id": run.info.run_id,
+                    "config_fingerprint": cfg_fingerprint,
                 },
-                last_path,
+                last_path.with_suffix(".tmp"),
             )
+            os.replace(
+                last_path.with_suffix(".tmp"), last_path
+            )  # 원자적 교체: 저장 중 죽어도 이전 last.pth 가 남는다
         (out_dir / "history.json").write_text(json.dumps(history, indent=1), encoding="utf-8")
         mlflow.log_artifact(str(out_dir / "history.json"))
 

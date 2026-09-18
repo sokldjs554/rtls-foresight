@@ -39,8 +39,6 @@ CVPR 2020, **Table 1** (ETH/UCY 5개 분할, 관측 8 프레임 → 예측 12 �
 
 ## 2. 학습 비용 (CPU)
 
-| 분할 | 학습 장면 | epoch 시간 (3 프로세스 동시) | 250 epoch | 최적 epoch |
-|---|---|---|---|---|
 <!-- TRAIN_COST:START -->
 | 분할 | 학습 장면 | epoch 평균 (s) | 250 epoch 합계 (min) | 최적 epoch | 최종 검증 NLL |
 |---|---|---|---|---|---|
@@ -51,7 +49,7 @@ CVPR 2020, **Table 1** (ETH/UCY 5개 분할, 관측 8 프레임 → 예측 12 �
 | zara2 | 2,112 | 8.2 | 34 | 151 | -1.529 |
 <!-- TRAIN_COST:END -->
 
-## 3. Ablation — 공식 코드의 세 가지 특이점은 결과에 영향을 주는가 (eth)
+## 3. Ablation — 공식 코드의 특이점은 결과에 영향을 주는가 (eth, 250 epoch)
 
 <!-- ABLATION_TABLE:START -->
 | 설정 | best-of-20 ADE/FDE | joint | 결정적(μ) | 최적 epoch | 비고 |

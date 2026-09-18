@@ -1,5 +1,5 @@
 {
- "out_dir": "/home/user/rtls-foresight/data/rtls/full/processed",
+ "out_dir": "data/rtls/full/processed",
  "rows_raw": 85423957,
  "rows_clean": 85057196,
  "rows_frames": 21576189,
@@ -45,7 +45,7 @@
   4352491800,
   4352507999
  ],
- "frames_dir": "/home/user/rtls-foresight/data/rtls/full/processed/frames_2p5hz",
+ "frames_dir": "data/rtls/full/processed/frames_2p5hz",
  "rss_stage_mb": {
   "resample_sink": 2292.9,
   "window_index": 1017.7,

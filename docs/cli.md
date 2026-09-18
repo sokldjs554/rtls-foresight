@@ -24,4 +24,4 @@
 - **near-miss 라벨**: 작업자-차량 거리 < `d_safe`(기본 1.0 m) 가 되는 순간을 이벤트로 정의. 평가는 예측 시점 t0 에서 (t0, t0+4.8s] 안에 이벤트가 있는 (worker, vehicle) 쌍을 양성으로 본다.
 
 ## 설정 (Hydra, configs/)
-`configs/config.yaml` 기본값 + `dataset/{eth,hotel,univ,zara1,zara2,rtls}.yaml`, `train/{paper,fast,smoke}.yaml`, `model/{social_stgcnn}.yaml`. MLflow: `MLFLOW_TRACKING_URI` (기본 `file:./mlruns`).
+`configs/config.yaml` 기본값 + `dataset/{eth,hotel,univ,zara1,zara2,rtls}.yaml`, `train/{paper,fast,smoke}.yaml`, `model/{social_stgcnn}.yaml`. MLflow: `MLFLOW_TRACKING_URI` (기본 `sqlite:///mlflow.db`, ADR-0004).

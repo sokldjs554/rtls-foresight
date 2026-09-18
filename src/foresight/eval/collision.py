@@ -2,7 +2,8 @@
 
 장면(작업자·차량 N명, 관측 8 + 미래 12 프레임)마다 (작업자, 차량) 쌍의 정답을 만든다.
 
-    양성 = 미래 12 프레임(4.8 s) 안에 두 에이전트의 **측정 위치** 거리가 d_safe 보다 작아지는 쌍
+    양성 = 예측 시점에는 d_safe 밖에 있던 (작업자, 차량) 쌍이 미래 12 프레임(4.8 s) 안에 **측정 위치** 거리 d_safe 안으로
+           들어오는 쌍. 예측 시점에 이미 d_safe 안인 쌍은 "사전 경보"의 대상이 아니므로 평가에서 제외한다 (개수만 보고)
 
 각 방법이 쌍마다 위험 점수를 내면 임계값을 훑어 정밀도/재현율/F1, AP(AUPRC), AUROC, 검출된 양성의
 선행시간(예측 시점 → 최초 접근까지의 시간), 시간당 오경보 수를 계산한다.
@@ -72,8 +73,10 @@ def stream_hours(scenes: SceneSet) -> float:
     return len(scenes) * STEP_SECONDS / 3600.0
 
 
-def pair_labels(scenes: SceneSet, d_safe: float) -> list[PairRecord]:
-    """모든 (작업자, 차량) 쌍의 정답."""
+def pair_labels(
+    scenes: SceneSet, d_safe: float, exclude_already_close: bool = True
+) -> list[PairRecord]:
+    """모든 (작업자, 차량) 쌍의 정답. ``exclude_already_close`` 면 예측 시점 거리 < d_safe 인 쌍은 뺀다."""
     out: list[PairRecord] = []
     obs_len = scenes.obs_len
     for i in range(len(scenes)):
@@ -91,6 +94,8 @@ def pair_labels(scenes: SceneSet, d_safe: float) -> list[PairRecord]:
         below = d < d_safe
         for a in range(len(w)):
             for b in range(len(v)):
+                if exclude_already_close and cur[a, b] < d_safe:
+                    continue
                 lab = bool(below[a, b].any())
                 first = int(np.argmax(below[a, b])) + 1 if lab else 0
                 out.append(PairRecord(i, int(w[a]), int(v[b]), lab, first, float(cur[a, b])))

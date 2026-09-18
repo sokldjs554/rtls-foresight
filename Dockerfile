@@ -20,17 +20,17 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 COPY configs ./configs
 COPY assets/official_checkpoints ./assets/official_checkpoints
-# 학습된 체크포인트·ONNX 는 있으면 담고 없으면 공식 체크포인트로 폴백한다 (foresight.serving.load_predictor).
-COPY results/checkpoints* ./results/checkpoints/
-COPY artifacts/onnx* ./artifacts/onnx/
+# 학습된 체크포인트·ONNX 는 저장소에 커밋돼 있다(각 수십 KB). 없으면 foresight.serving.load_predictor 가 공식 체크포인트로 폴백한다.
+COPY results/checkpoints ./results/checkpoints
+COPY artifacts/onnx ./artifacts/onnx
 RUN pip install --no-deps -e . && python -c "import foresight, foresight.serving.app" \
  && useradd --create-home --uid 10001 app && chown -R app:app /app
 USER app
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=3 CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).status==200 else 1)"
-ENV FORESIGHT_BACKEND=onnx
-ENTRYPOINT ["foresight"]
-CMD ["serve", "--host", "0.0.0.0", "--port", "8000", "--backend", "onnx"]
+ENV FORESIGHT_BACKEND=onnx PORT=8000 FORESIGHT_WORKERS=1
+# 백엔드·포트·워커 수는 환경변수로 바꾼다 (compose, Render, ECS 가 같은 이미지를 쓴다)
+CMD ["sh", "-c", "exec foresight serve --host 0.0.0.0 --port ${PORT} --backend ${FORESIGHT_BACKEND} --workers ${FORESIGHT_WORKERS}"]
 
 # ---------------------------------------------------------------- train
 FROM base AS train

@@ -1,0 +1,120 @@
+{
+ "run_id": "7a60fb9af2cd42089f9ec4e471c1a368",
+ "run_name": "ablation-eth-permute",
+ "dataset": "eth",
+ "seed": 0,
+ "model_uri": "models:/m-a3b83bcf9e124aa6bdd8a16032b9b1aa",
+ "best_epoch": 245,
+ "best_val_loss": -2.0340025822321572,
+ "eval": {
+  "split": "eth",
+  "n_scenes": 70,
+  "n_agents": 181,
+  "k": 20,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "best_of_k_per_agent": {
+   "ade": 0.8148731589317322,
+   "fde": 1.6231396198272705
+  },
+  "best_of_k_per_agent_std": {
+   "ade": 0.002172319686466388,
+   "fde": 0.008792743448360249
+  },
+  "best_of_k_joint": {
+   "ade": 0.9304603536923727,
+   "fde": 1.9249343077341716
+  },
+  "deterministic": {
+   "ade": 1.086601734161377,
+   "fde": 2.234022855758667,
+   "n_agents": 181
+  },
+  "cvm": {
+   "ade": 0.995402991771698,
+   "fde": 2.2343809604644775,
+   "n_agents": 181
+  },
+  "cvm_sampled": {
+   "ade": 0.8529824614524841,
+   "fde": 1.8867321014404297
+  }
+ },
+ "metrics": {
+  "test_ade_bo20": 0.8148731589317322,
+  "test_fde_bo20": 1.6231396198272705,
+  "test_ade_bo20_std": 0.002172319686466388,
+  "test_fde_bo20_std": 0.008792743448360249,
+  "test_ade_joint": 0.9304603536923727,
+  "test_fde_joint": 1.9249343077341716,
+  "test_ade_det": 1.086601734161377,
+  "test_fde_det": 2.234022855758667,
+  "test_ade_cvm": 0.995402991771698,
+  "test_fde_cvm": 2.2343809604644775,
+  "best_epoch": 245,
+  "best_val_loss": -2.0340025822321572
+ },
+ "config": {
+  "dataset": {
+   "name": "eth",
+   "data_dir": "data/processed/ethucy/eth",
+   "train": "data/processed/ethucy/eth/train.npz",
+   "val": "data/processed/ethucy/eth/val.npz",
+   "test": "data/processed/ethucy/eth/test.npz",
+   "limit_scenes": null
+  },
+  "model": {
+   "n_stgcnn": 1,
+   "n_txpcnn": 5,
+   "in_channels": 2,
+   "out_channels": 5,
+   "obs_len": 8,
+   "pred_len": 12,
+   "t_kernel": 3,
+   "time_channel_swap": "permute",
+   "graph": {
+    "kernel": "velocity",
+    "normalize": true
+   }
+  },
+  "train": {
+   "epochs": 250,
+   "lr": 0.01,
+   "optimizer": "sgd",
+   "batch_size": 128,
+   "lr_step": 150,
+   "lr_gamma": 0.2,
+   "clip_grad": null,
+   "mode": "scene",
+   "bucket_batch": 32,
+   "loss_exact": true,
+   "val_every": 1,
+   "log_every": 50,
+   "save_best": true,
+   "name": "paper"
+  },
+  "seed": 0,
+  "threads": 1,
+  "out_dir": "results/checkpoints",
+  "run_name": "ablation-eth-permute",
+  "init_from": null,
+  "resume": true,
+  "mlflow": {
+   "tracking_uri": "sqlite:///mlflow.db",
+   "experiment": "social-stgcnn-ablation",
+   "register": true
+  },
+  "eval": {
+   "k": 20,
+   "seeds": [
+    0,
+    1,
+    2
+   ],
+   "official_ckpt": null
+  }
+ }
+}

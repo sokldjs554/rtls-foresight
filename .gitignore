@@ -20,6 +20,8 @@ data/rtls/
 data/cache/
 /mlruns/
 /mlflow.db
+/mlflow.db-journal
+results/benchmark-smoke.json
 /mlartifacts/
 /outputs/
 /multirun/

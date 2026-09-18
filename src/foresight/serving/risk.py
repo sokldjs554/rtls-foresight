@@ -210,7 +210,8 @@ class AlertPolicy:
             elif pr.risk < self.clear_threshold:
                 st.consecutive = 0
             # clear_threshold <= risk < threshold : 카운터 유지 (히스테리시스 밴드)
-            if st.consecutive >= self.min_consecutive:
+            if st.consecutive >= self.min_consecutive and pr.risk >= self.threshold:
+                # 히스테리시스 밴드(clear ≤ risk < threshold)에서는 카운터만 유지하고 새 경보는 내지 않는다
                 if now_s - st.last_alert_s >= self.cooldown_s:
                     st.last_alert_s = now_s
                     self.n_alerts += 1

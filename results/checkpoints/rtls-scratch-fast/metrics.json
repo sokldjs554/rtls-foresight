@@ -1,0 +1,116 @@
+{
+ "run_id": "e205307b5c1446c1a15b09f40f9a8a1b",
+ "run_name": "rtls-scratch-fast",
+ "dataset": "rtls",
+ "seed": 0,
+ "model_uri": "models:/m-dbbe2ec2d18b4218893718c2442b769b",
+ "best_epoch": 59,
+ "best_val_loss": -0.5340460236490785,
+ "eval": {
+  "split": "rtls",
+  "n_scenes": 60000,
+  "n_agents": 485586,
+  "k": 20,
+  "seeds": [
+   0
+  ],
+  "best_of_k_per_agent": {
+   "ade": 0.5640575289726257,
+   "fde": 0.8758310675621033
+  },
+  "best_of_k_per_agent_std": {
+   "ade": 0.0,
+   "fde": 0.0
+  },
+  "best_of_k_joint": {
+   "ade": 0.8262490034103394,
+   "fde": 1.5480685234069824
+  },
+  "deterministic": {
+   "ade": 0.8069812655448914,
+   "fde": 1.5774216651916504,
+   "n_agents": 485586
+  },
+  "cvm": {
+   "ade": 1.3185501098632812,
+   "fde": 2.5752854347229004,
+   "n_agents": 485586
+  },
+  "cvm_sampled": {
+   "ade": 1.0735230445861816,
+   "fde": 2.060326337814331
+  }
+ },
+ "metrics": {
+  "test_ade_bo20": 0.5640575289726257,
+  "test_fde_bo20": 0.8758310675621033,
+  "test_ade_bo20_std": 0.0,
+  "test_fde_bo20_std": 0.0,
+  "test_ade_joint": 0.8262490034103394,
+  "test_fde_joint": 1.5480685234069824,
+  "test_ade_det": 0.8069812655448914,
+  "test_fde_det": 1.5774216651916504,
+  "test_ade_cvm": 1.3185501098632812,
+  "test_fde_cvm": 2.5752854347229004,
+  "best_epoch": 59,
+  "best_val_loss": -0.5340460236490785
+ },
+ "config": {
+  "dataset": {
+   "name": "rtls",
+   "data_dir": "data/rtls/full/processed",
+   "train": "data/rtls/full/processed/train.npz",
+   "val": "data/rtls/full/processed/val.npz",
+   "test": "data/rtls/full/processed/test.npz",
+   "limit_scenes": 60000
+  },
+  "model": {
+   "n_stgcnn": 1,
+   "n_txpcnn": 5,
+   "in_channels": 2,
+   "out_channels": 5,
+   "obs_len": 8,
+   "pred_len": 12,
+   "t_kernel": 3,
+   "time_channel_swap": "view",
+   "graph": {
+    "kernel": "velocity",
+    "normalize": true
+   }
+  },
+  "train": {
+   "epochs": 60,
+   "lr": 0.01,
+   "optimizer": "sgd",
+   "batch_size": 128,
+   "lr_step": 40,
+   "lr_gamma": 0.2,
+   "clip_grad": null,
+   "mode": "bucket",
+   "bucket_batch": 32,
+   "loss_exact": true,
+   "val_every": 1,
+   "log_every": 50,
+   "save_best": true,
+   "name": "fast"
+  },
+  "seed": 0,
+  "threads": 1,
+  "out_dir": "results/checkpoints",
+  "run_name": "rtls-scratch-fast",
+  "init_from": null,
+  "resume": true,
+  "mlflow": {
+   "tracking_uri": "sqlite:///mlflow.db",
+   "experiment": "social-stgcnn-rtls",
+   "register": true
+  },
+  "eval": {
+   "k": 20,
+   "seeds": [
+    0
+   ],
+   "official_ckpt": null
+  }
+ }
+}

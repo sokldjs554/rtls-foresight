@@ -230,7 +230,9 @@ def evaluate_rtls(
         ),
         encoding="utf-8",
     )
-    ev = evaluate_collision(scenes, {**predictors, "_baselines": None}, d_safe=d_safe, k=k)  # type: ignore[arg-type]
+    ev = evaluate_collision(
+        scenes, {**predictors, "_baselines": None}, d_safe=d_safe, k=k, sample_fraction=1.0 / every
+    )  # type: ignore[arg-type]
     save_collision_eval(ev, _abs(collision_out))
     for m, e in ev.methods.items():
         log.info(
@@ -334,16 +336,30 @@ def benchmark(
 
 @app.command()
 def serve(host: str = "0.0.0.0", port: int = 8000, backend: str = "onnx", workers: int = 1) -> None:
-    """FastAPI 추론 서버."""
+    """FastAPI 추론 서버. workers>1 이면 프로세스 확장 (스레드가 아니라 — docs/inference_optimization.md §3)."""
+    import os
+
     import uvicorn
 
-    from foresight.serving.app import create_app
+    os.environ["FORESIGHT_BACKEND"] = backend
+    if workers > 1:
+        # uvicorn 은 다중 워커일 때 import 문자열(팩토리)만 받는다 — 각 워커가 자기 ONNX 세션을 만든다.
+        uvicorn.run(
+            "foresight.serving.app:app_from_env",
+            host=host,
+            port=port,
+            workers=workers,
+            factory=True,
+        )
+    else:
+        from foresight.serving.app import create_app
 
-    uvicorn.run(create_app(backend=backend), host=host, port=port, workers=workers)
+        uvicorn.run(create_app(backend=backend), host=host, port=port)
 
 
 @app.command()
 def stream(
+    mode: str = "consume",
     source: str = "replay",
     sink: str = "stdout",
     backend: str = "onnx",
@@ -354,8 +370,20 @@ def stream(
     speed: float = 10.0,
     max_seconds: float | None = None,
 ) -> None:
-    """스트리밍 소비자/재생기: replay(파일) 또는 kafka 입력 → 예측·위험 점수 → stdout/kafka 경보."""
-    from foresight.serving.stream import run_stream
+    """스트리밍. mode=consume: replay(파일)/kafka 입력 → 예측·위험 점수 → stdout/kafka 경보. mode=produce: 재생 파일을 Kafka 위치 토픽으로 발행."""
+    from foresight.serving.stream import produce_positions, run_stream
+
+    if mode == "produce":
+        if replay_file is None:
+            raise typer.BadParameter("--mode produce 에는 --replay-file 이 필요하다")
+        produce_positions(
+            _abs(replay_file),
+            bootstrap=bootstrap,
+            topic=topic,
+            speed=speed,
+            max_seconds=max_seconds,
+        )
+        return
 
     run_stream(
         source=source,

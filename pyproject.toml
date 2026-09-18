@@ -28,6 +28,7 @@ dependencies = [
     "tqdm>=4.66",
     "pyyaml>=6.0",
     "matplotlib>=3.8",
+    "psutil>=5.9",         # 파이프라인 피크 RSS 측정 (rtls_pipeline) — 런타임 의존성
 ]
 
 [project.optional-dependencies]
@@ -59,7 +60,6 @@ dev = [
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",
     "locust>=2.29",
-    "psutil>=5.9",
 ]
 all = ["rtls-foresight[serve,stream,dvc,dev]"]
 

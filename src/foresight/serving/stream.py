@@ -415,6 +415,7 @@ class StreamPipeline:
         self.d_safe, self.k = d_safe, k
         self.assembler = FrameAssembler(obs_len, stale_bins)
         self.stats = StreamStats()
+        self._last_bin: dict[int, int] = {}
 
     def process_frame(self, records: list[Record]) -> list[dict[str, Any]]:
         t0 = time.perf_counter()
@@ -423,10 +424,13 @@ class StreamPipeline:
         now_s = cur * STEP_SECONDS
         emitted: list[dict[str, Any]] = []
         for zb in self.assembler.complete_zones(cur):
-            self.stats.zones_evaluated += 1
-            self.stats.agents_predicted += len(zb.ids)
+            if self._last_bin.get(zb.zone_id) == cur:
+                continue  # 같은 빈에 같은 구역이 두 번 오면(카프카 배치가 빈 경계를 걸칠 때) 한 번만 평가한다
+            self._last_bin[zb.zone_id] = cur
             if not ((zb.types == 0).any() and (zb.types == 1).any()):
                 continue  # 작업자–차량 쌍이 없으면 예측할 필요가 없다 (비용 절감)
+            self.stats.zones_evaluated += 1
+            self.stats.agents_predicted += len(zb.ids)
             pred = self.predictor.predict(zb.obs, k=self.k)
             samples = pred.samples_abs if pred.samples_abs is not None else pred.mean_abs[None]
             rm = pairwise_risk(samples, zb.types, self.d_safe)
@@ -510,4 +514,52 @@ def run_stream(
     stats = pipe.run(src, max_seconds=max_seconds)
     if hasattr(src, "close"):
         src.close()
+    return stats
+
+
+def produce_positions(
+    replay_file: Path | str,
+    bootstrap: str,
+    topic: str,
+    speed: float = 10.0,
+    max_seconds: float | None = None,
+    stride_frames: int = 4,
+) -> dict[str, Any]:
+    """재생 파일의 2.5 Hz 프레임을 Kafka 토픽에 위치 메시지로 발행한다 (compose 의 `replay` 서비스).
+
+    현장에서는 UWB 엔진 → Kafka Connect 가 이 자리다. 메시지 스키마는 KafkaSource 가 읽는 것과 같다:
+    {ts_ms, tag_id, agent_type, zone_id, x, y}. 키는 tag_id (같은 태그의 순서 보장).
+    """
+    try:
+        from confluent_kafka import Producer
+    except ImportError as e:  # pragma: no cover
+        raise RuntimeError(
+            "confluent-kafka 가 필요하다: pip install 'rtls-foresight[stream]'"
+        ) from e
+    src = ReplaySource(replay_file, speed=speed, stride_frames=stride_frames)
+    producer = Producer({"bootstrap.servers": bootstrap, "linger.ms": 5})
+    t_start = time.perf_counter()
+    n = 0
+    try:
+        for records in src.frames():
+            for r in records:
+                payload = json.dumps(
+                    {
+                        "ts_ms": r.ts_ms,
+                        "tag_id": r.tag_id,
+                        "agent_type": r.agent_type,
+                        "zone_id": r.zone_id,
+                        "x": r.x,
+                        "y": r.y,
+                    }
+                ).encode()
+                producer.produce(topic, key=str(r.tag_id).encode(), value=payload)
+                n += 1
+            producer.poll(0)
+            if max_seconds is not None and time.perf_counter() - t_start > max_seconds:
+                break
+    finally:
+        producer.flush(10)
+    stats = {"messages": n, "elapsed_s": time.perf_counter() - t_start, "topic": topic}
+    log.info("produce done: %s", stats)
     return stats

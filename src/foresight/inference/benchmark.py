@@ -224,7 +224,10 @@ def streaming_frame_benchmark(
 # ----------------------------------------------------------------------------- preprocessing reference
 def networkx_seq_to_graph(obs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """공식 Social-STGCNN ``seq_to_graph`` 의 충실한 옮김 (파이썬 이중 루프 + networkx). 벤치마크 참조용."""
-    import networkx as nx
+    try:
+        import networkx as nx
+    except ImportError as e:  # pragma: no cover — dev extra
+        raise RuntimeError("networkx (dev extra) 가 있어야 공식 전처리와 비교할 수 있다") from e
 
     n, t = obs.shape[0], obs.shape[1]
     rel = relative_displacement(obs)  # (N, T, 2)

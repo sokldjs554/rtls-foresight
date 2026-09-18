@@ -73,6 +73,10 @@ def best_of_k_per_agent(pred_abs: torch.Tensor, gt_abs: torch.Tensor) -> Displac
 
 
 def best_of_k_joint(pred_abs: torch.Tensor, gt_abs: torch.Tensor) -> DisplacementErrors:
+    """장면 평균 ADE 가 가장 좋은 샘플 하나를 고르고 그 샘플의 ADE·FDE 를 모두 보고한다.
+
+    FDE 를 따로 최소화하지 않는 것은 의도다: "하나의 미래"를 고른 뒤 그 미래의 두 지표를 읽어야 joint 다.
+    """
     ade, fde = errors_per_agent(pred_abs, gt_abs)
     k = ade.mean(dim=1).argmin()  # 장면 평균 ADE 가 가장 좋은 샘플 하나
     return DisplacementErrors(ade[k].numpy(), fde[k].numpy())

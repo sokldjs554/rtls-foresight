@@ -15,7 +15,7 @@ declare -A ABL=(
 )
 for name in "${!ABL[@]}"; do echo "$name ${ABL[$name]}"; done | xargs -P "$PAR" -L 1 bash -c '
   name=$0; ov="$*"
-  if [ -f results/checkpoints/ablation-'"$SPLIT"'-$name/metrics.json ]; then echo "[$(date +%H:%M:%S)] skip ablation $name (done)"; exit 0; fi
+  if [ "${SKIP_DONE:-0}" = 1 ] && [ -f results/checkpoints/ablation-'"$SPLIT"'-$name/metrics.json ]; then echo "[$(date +%H:%M:%S)] skip ablation $name (done)"; exit 0; fi
   echo "[$(date +%H:%M:%S)] start ablation $name ($ov)"
   foresight train dataset='"$SPLIT"' train=paper seed='"$SEED"' threads=1 run_name=ablation-'"$SPLIT"'-$name mlflow.experiment=social-stgcnn-ablation $ov \
      > results/logs/ablation-'"$SPLIT"'-$name.log 2>&1 \

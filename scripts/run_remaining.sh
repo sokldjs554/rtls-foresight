@@ -3,7 +3,7 @@
 #   nohup scripts/run_remaining.sh > results/logs-remaining.txt 2>&1 &
 set -uo pipefail
 cd "$(dirname "$0")/.."
-export FORESIGHT_ROOT="$PWD" PATH="$PWD/.venv/bin:/home/user/.venv/bin:$PATH" MLFLOW_DISABLE_TELEMETRY=true MLFLOW_DISABLE_AGENT_HINT=1 OMP_WAIT_POLICY=PASSIVE
+export FORESIGHT_ROOT="$PWD" PATH="$PWD/.venv/bin:$PATH" SKIP_DONE=1 DATA=data/rtls/full/processed MLFLOW_DISABLE_TELEMETRY=true MLFLOW_DISABLE_AGENT_HINT=1 OMP_WAIT_POLICY=PASSIVE
 mkdir -p results/logs
 echo "[$(date +%H:%M:%S)] stage A: zara2 seed0 + RTLS 전이 + ablation(permute, poskernel)"
 ( SEEDS="0" SPLITS="zara2" PAR=1 scripts/train_all.sh > results/logs-train-all-seed0b.txt 2>&1 ) &
