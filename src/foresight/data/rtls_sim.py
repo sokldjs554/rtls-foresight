@@ -814,7 +814,7 @@ def simulate(
     seconds = time.perf_counter() - t_start
     events = sorted(world.events, key=lambda e: (e["ts_ms"], e["worker_tag"], e["vehicle_tag"]))
     vehicle_hours = world.n_veh * cfg.hours
-    manifest = {
+    manifest: dict[str, Any] = {
         "profile": profile,
         "config": asdict(cfg),
         "layout": {

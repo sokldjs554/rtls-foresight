@@ -33,12 +33,25 @@ MLflow 실험 이름: `social-stgcnn` (본 실험), `social-stgcnn-ablation`, `s
 - 재현표의 ± 는 **평가(샘플링) 시드 3개**의 표준편차다. **학습 시드** 1·2 는 별도 실행(`SEEDS="1 2" scripts/train_all.sh`)이며
   결과는 `results/seeds.json` 과 `docs/paper_reproduction.md` 의 시드 표에 넣는다.
 
-## E5 · Ablation (eth)
-- `permute`(논문 그림) vs `view`(공식 코드), 위치 커널 vs 속도 커널, 버킷 배치(BN 통계 배치 단위) vs 장면 배치, 로그 영역 NLL vs 클램프 NLL.
+## E5 · Ablation (eth, 250 epoch)
+- 기본 0.743/1.317 · permute 0.815/1.623 · 위치 커널 0.771/1.348 · 버킷 배치 0.805/1.606 (학습 7 분) · 로그 영역 NLL **0.736/1.263**.
+- 결론: 공식 코드의 `view`·속도 커널·장면 단위 BN 이 모두 결과에 기여한다. 손실 클램프만은 없애는 편이 약간 낫다. 상세: `docs/paper_reproduction.md` §3.
 
 ## E6 · 합성 RTLS 전이·미세조정, 충돌 경보 평가
-- ETH/UCY 학습 모델을 RTLS 테스트에 그대로 적용(zero-shot) → 미세조정(`train=finetune`) → CVM 과 비교.
-- 경보 품질: 정밀도/재현율/선행시간, 지오펜스 규칙과 비교. `results/collision_eval.json`.
+- 데이터: full 프로파일(200 태그 × 12 h) → 학습 장면 앞 60,000개(skip 4), 테스트는 1.8 h 스트림의 장면을 10개마다 하나(`--every 10`).
+- 궤적 지표(best-of-20 / 결정적, CVM 1.333/2.611): zero-shot(eth 가중치) 0.735/1.288 · 1.046/2.013 →
+  **미세조정 30 epoch 0.615/0.978 · 0.905/1.750**, **RTLS 처음부터(버킷 배치, 60 epoch) 0.584/0.924 · 0.834/1.644**
+  (`results/rtls_transfer.json`; 평가 시드 3개 평균).
+  보행자 가중치는 지게차(최대 3 m/s, 큰 회전반경)를 모른다 — RTLS 장면으로 적응하면 결정적 예측도 CVM 을 크게 이긴다
+  (ETH/UCY 에서는 반대였다: 등속에 가까운 보행자에게는 μ 가 CVM 보다 나빴다).
+- 경보 품질(`results/collision_eval.json`, d_safe 1.0 m, 양성 260/395,781 = 0.07 %): **지오펜스(현재 거리)가 AP 0.084 · AUROC 0.914 로 최고**,
+  RTLS 학습 모델의 분포 기반 위험은 AUROC 0.903 (AP 0.026), zero-shot 0.815, CVM-S 0.797, 결정적(μ) 변형은 0.65–0.67.
+  예측 오차(ADE 0.58 m)가 d_safe 와 같은 크기라 "현재 거리" 이상의 정보를 주지 못한다 — 예상과 다른 결과지만 그대로 싣는다 (README §4.5).
+- d_safe 2.0 m 민감도(`results/collision_eval_dsafe2.json`, 양성 3.55 %): 순서가 뒤집힌다 — 학습 모델 AP 0.465 · F1 0.508 vs 지오펜스 0.341 · 0.383,
+  비슷한 오경보율에서 재현율 0.44 vs 0.35, 선행시간 1.64 vs 1.27 s. 예측 모델이 값을 내는 조건은 "예측 오차 ≪ 안전 거리" 라는 것을 두 설정이 같이 보여 준다.
+- 첫 실행은 궤적 표를 쓴 뒤 충돌 단계에서 죽었다: CLI 는 `sample_fraction` 을 넘기는데 `evaluate_collision` 시그니처에 없었다.
+  단위 테스트는 함수만, CI 스모크는 `evaluate-rtls` 를 안 돌려서 둘 다 놓쳤다. 인자를 구현(오경보/시간 외삽, 제외 쌍 수 기록)하고
+  테스트와 CI 스모크 단계를 추가했다.
 
 ## E7 · 추론 최적화
 - `docs/inference_optimization.md`. 요점: ONNX Runtime fp32 가 eager 대비 2배 빠르고, **정적 INT8 은 이 7.6K 모델에서 오히려 느리다**

@@ -15,7 +15,7 @@ import json
 import os
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import mlflow
 import numpy as np
@@ -155,9 +155,8 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
 
     model = build_model(cfg)
     if cfg.init_from:
-        model_kw = {
-            k: v for k, v in OmegaConf.to_container(cfg.model, resolve=True).items() if k != "graph"
-        }  # type: ignore[union-attr]
+        model_cfg = cast(dict[str, Any], OmegaConf.to_container(cfg.model, resolve=True))
+        model_kw = {k: v for k, v in model_cfg.items() if k != "graph"}
         init = load_model(_abs(cfg.init_from), **model_kw)
         model.load_state_dict(init.state_dict())
         log.info("init from %s", cfg.init_from)
@@ -179,8 +178,10 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
     mlflow.set_experiment(str(cfg.mlflow.experiment))
     flat = {
         k: (json.dumps(v) if isinstance(v, (list, dict)) else v)
-        for k, v in _flatten(OmegaConf.to_container(cfg, resolve=True)).items()
-    }  # type: ignore[arg-type]
+        for k, v in _flatten(
+            cast(dict[str, Any], OmegaConf.to_container(cfg, resolve=True))
+        ).items()
+    }
     history: list[dict[str, float]] = []
     best_val, best_epoch = float("inf"), -1
     best_path = out_dir / "best.pth"
@@ -402,15 +403,14 @@ def compose_config(overrides: list[str] | None = None) -> DictConfig:
 
 if __name__ == "__main__":  # python -m foresight.train.train dataset=eth train=paper -m seed=0,1,2
     import hydra
+    from hydra.core.hydra_config import HydraConfig
 
     @hydra.main(
         config_path=str(project_root() / "configs"), config_name="config", version_base=None
     )
     def _main(cfg: DictConfig) -> None:
         OmegaConf.set_struct(cfg, False)
-        cfg.train.setdefault(
-            "name", hydra.core.hydra_config.HydraConfig.get().runtime.choices.get("train", "paper")
-        )
+        cfg.train.setdefault("name", HydraConfig.get().runtime.choices.get("train", "paper"))
         run_training(cfg)
 
     _main()

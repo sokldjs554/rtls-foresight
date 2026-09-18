@@ -18,4 +18,9 @@ echo "[$(date +%H:%M:%S)] evaluate-rtls"
 foresight evaluate-rtls --data-dir "$DATA" --every "$EVERY" --seeds 0,1,2 \
   --ckpts "$INIT,results/checkpoints/rtls-finetune-eth/best.pth,results/checkpoints/rtls-scratch-fast/best.pth" \
   --names "zero-shot-eth,finetuned-eth,scratch-rtls" > results/logs/evaluate-rtls.log 2>&1
+echo "[$(date +%H:%M:%S)] evaluate-rtls (d_safe 2.0 m 민감도)"
+foresight evaluate-rtls --data-dir "$DATA" --every "$EVERY" --seeds 0,1,2 --d-safe 2.0 \
+  --ckpts "$INIT,results/checkpoints/rtls-finetune-eth/best.pth,results/checkpoints/rtls-scratch-fast/best.pth" \
+  --names "zero-shot-eth,finetuned-eth,scratch-rtls" --out results/_prelim_rtls_transfer_dsafe2.json \
+  --collision-out results/collision_eval_dsafe2.json --figure results/figures/collision_pr_dsafe2.png > results/logs/evaluate-rtls-dsafe2.log 2>&1
 echo "[$(date +%H:%M:%S)] done"

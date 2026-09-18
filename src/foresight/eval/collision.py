@@ -57,6 +57,8 @@ class CollisionEval:
     n_pairs: int
     n_positive: int
     hours: float
+    sample_fraction: float = 1.0  # 평가한 장면 비율 (--every k → 1/k); 오경보/시간은 1/비율로 외삽
+    n_already_close: int = 0  # 예측 시점에 이미 d_safe 안에 있어 라벨에서 뺀 쌍
     methods: dict[str, dict] = field(default_factory=dict)
 
 
@@ -183,8 +185,13 @@ def evaluate_collision(
     k: int = 20,
     hours: float | None = None,
     thresholds: tuple[float, ...] = (0.1, 0.2, 0.3, 0.5, 0.7),
+    sample_fraction: float = 1.0,
 ) -> CollisionEval:
-    records = pair_labels(scenes, d_safe)
+    """충돌 사전 경보 품질. ``sample_fraction`` < 1 이면(장면 부분 샘플) 오경보/시간을 1/비율로 외삽한다."""
+    if not 0.0 < sample_fraction <= 1.0:
+        raise ValueError(f"sample_fraction must be in (0, 1], got {sample_fraction}")
+    all_records = pair_labels(scenes, d_safe, exclude_already_close=False)
+    records = [r for r in all_records if r.current_dist >= d_safe]
     y = np.array([r.label for r in records], dtype=np.int64)
     first = np.array([r.first_cross_step for r in records])
     if hours is None:
@@ -195,17 +202,19 @@ def evaluate_collision(
         n_pairs=len(records),
         n_positive=int(y.sum()),
         hours=hours,
+        sample_fraction=sample_fraction,
+        n_already_close=len(all_records) - len(records),
     )
     scored: dict[str, np.ndarray] = {}
     for name, pred in predictors.items():
-        s = score_pairs(scenes, records, pred, d_safe, k=k)
+        parts = score_pairs(scenes, records, pred, d_safe, k=k)
         if pred is None:
-            scored.update({k2: v for k2, v in s.items() if k2 in ("geofence", "cvm")})
+            scored.update({k2: v for k2, v in parts.items() if k2 in ("geofence", "cvm")})
         else:
-            scored[name] = s["model"]
-            scored[f"{name}_det"] = s["model_det"]
-            scored.setdefault("geofence", s["geofence"])
-            scored.setdefault("cvm", s["cvm"])
+            scored[name] = parts["model"]
+            scored[f"{name}_det"] = parts["model_det"]
+            scored.setdefault("geofence", parts["geofence"])
+            scored.setdefault("cvm", parts["cvm"])
     for name, s in scored.items():
         entry: dict = {"ap": average_precision(y, s), "auroc": auroc(y, s), "thresholds": {}}
         # geofence 는 점수 스케일이 다르므로 "현재 거리 < r" 규칙에 해당하는 임계값도 함께 제공
@@ -231,7 +240,7 @@ def evaluate_collision(
                 "tp": tp,
                 "fp": fp,
                 "fn": fn,
-                "false_alarms_per_hour": fp / max(hours, 1e-9),
+                "false_alarms_per_hour": fp / sample_fraction / max(hours, 1e-9),
                 "lead_time_mean_s": float(lead.mean()) if len(lead) else float("nan"),
             }
         best = max(entry["thresholds"].items(), key=lambda kv: kv[1]["f1"])
@@ -252,10 +261,13 @@ def collision_table(ev: CollisionEval) -> str:
             f"| {label.get(name, name)} | {e['ap']:.3f} | {e['auroc']:.3f} | {b['f1']:.3f} @ {b['threshold']} | "
             f"{b['precision']:.2f} / {b['recall']:.2f} | {b['false_alarms_per_hour']:.1f} | {b['lead_time_mean_s']:.2f} |"
         )
-    rows.append(
+    note = (
         f"\n장면 {ev.n_scenes:,} · 쌍 {ev.n_pairs:,} · 양성 {ev.n_positive:,} ({100 * ev.n_positive / max(ev.n_pairs, 1):.2f}%)"
-        f" · 스트림 {ev.hours:.2f} h · d_safe {ev.d_safe} m"
+        f" · 이미 근접해 제외 {ev.n_already_close:,} · 스트림 {ev.hours:.2f} h · d_safe {ev.d_safe} m"
     )
+    if ev.sample_fraction < 1.0:
+        note += f" · 장면 1/{round(1.0 / ev.sample_fraction)} 부분 샘플 (오경보/시간은 외삽)"
+    rows.append(note)
     return "\n".join(rows)
 
 
@@ -268,6 +280,8 @@ def save_collision_eval(ev: CollisionEval, path: Path) -> None:
         "n_positive": ev.n_positive,
         "positive_rate": ev.n_positive / max(ev.n_pairs, 1),
         "hours": ev.hours,
+        "sample_fraction": ev.sample_fraction,
+        "n_already_close": ev.n_already_close,
         "methods": ev.methods,
         "table_markdown": collision_table(ev),
     }
@@ -291,12 +305,12 @@ def plot_pr_curves(
     fig, ax = plt.subplots(figsize=(5.2, 4.2))
     curves: dict[str, np.ndarray] = {}
     for name, pred in predictors.items():
-        s = score_pairs(scenes, records, pred, d_safe, k=k)
+        parts = score_pairs(scenes, records, pred, d_safe, k=k)
         if pred is None:
-            curves["geofence (current distance)"] = s["geofence"]
-            curves["CVM-S (20 samples)"] = s["cvm"]
+            curves["geofence (current distance)"] = parts["geofence"]
+            curves["CVM-S (20 samples)"] = parts["cvm"]
         else:
-            curves[f"{name} (20 samples)"] = s["model"]
+            curves[f"{name} (20 samples)"] = parts["model"]
     for name, s in curves.items():
         order = np.argsort(-s, kind="stable")
         yy = y[order]

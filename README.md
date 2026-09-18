@@ -14,7 +14,9 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 ## 1. 문제
 
 공장·물류창고·광산의 스마트 안전 플랫폼은 UWB 태그로 작업자와 지게차의 위치를 초당 여러 번 받는다. 대부분의 제품은
-**"지금 거리가 r 미만이면 경보"** 라는 지오펜스 규칙을 쓴다. 이 규칙은 이미 가까워진 뒤에 울린다.
+**"지금 거리가 r 미만이면 경보"** 라는 지오펜스 규칙을 쓴다. 이 규칙은 이미 가까워진 뒤에 울린다 — 는 것이 출발 가설이었고,
+합성 데이터에서 이 가설이 어디까지 맞았는지는 §4.5 에 그대로 적었다 (짧게: 안전 거리가 예측 오차와 비슷하면 지오펜스가 이기고,
+두 배가 되면 예측 분포가 이긴다).
 
 이 프로젝트가 답하려는 질문은 하나다.
 
@@ -61,7 +63,13 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 <!-- REPRODUCTION_TABLE:END -->
 
 세 열을 같이 읽어야 한다. **논문**은 저자가 보고한 값, **공식 ckpt 재평가**는 저자의 가중치를 이 저장소의 평가기로 돌린 값,
-**우리 학습**은 처음부터 구현한 코드로 CPU 에서 250 epoch 학습한 값이다. 자세한 논의와 ablation: [`docs/paper_reproduction.md`](docs/paper_reproduction.md)
+**우리 학습**은 처음부터 구현한 코드로 CPU 에서 250 epoch 학습한 값(학습 시드 0)이다. 학습 시드를 바꾸면 ETH 는 0.74 → 0.66 까지 움직여
+논문과의 차이가 시드 분산 안에 들어온다 — 시드별 표는 [`docs/paper_reproduction.md`](docs/paper_reproduction.md) §2.1.
+자세한 논의와 ablation(공식 코드의 `view` 축 교환·속도 커널·장면 단위 BN 이 모두 결과에 기여한다): 같은 문서 §3
+
+![논문 vs 공식 체크포인트 재평가 vs 우리 학습 vs 등속 모델](results/figures/reproduction_bars.png)
+
+![예측 예시 — 회색 관측, 검정 점선 정답, 파랑 평균 예측, 연파랑 20 샘플](results/figures/predictions_ours.png)
 
 ### 4.2 같은 모델, 다른 프로토콜 — 숫자가 어떻게 달라지는가
 
@@ -87,6 +95,8 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 
 생성기·품질 규칙·리샘플·윈도우와 pandas/DuckDB 비교: [`docs/data_pipeline.md`](docs/data_pipeline.md)
 
+![프로파일별 처리량](results/figures/data_pipeline_throughput.png)
+
 ### 4.4 추론 최적화 (CPU 1 스레드, 전처리+모델+20 샘플 후처리 포함, N=20 장면)
 
 | 백엔드 | p50 (ms) | p95 (ms) | 처리량 (장면/s) |
@@ -101,18 +111,87 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 - 토치 4 스레드는 OpenMP 스핀 대기로 100배 느려진다 → 서빙은 1 스레드 + 프로세스 확장. 논문 주장 0.002 s/frame 대비 CPU 에서 N≤20 이면 2 ms 이내.
 - 자세한 표·그림: [`docs/inference_optimization.md`](docs/inference_optimization.md) · 서빙 API/스트리밍/부하테스트: [`docs/serving_streaming.md`](docs/serving_streaming.md)
 
+![백엔드별 지연 (1 스레드)](results/figures/benchmark_latency_t1.png)
+
 ### 4.5 RTLS 전이와 충돌 경보 (합성 스트림 테스트 1.8 h)
 
 <!-- RTLS_TRANSFER_TABLE:START -->
-(`foresight evaluate-rtls` 가 채운다)
+| 모델 | best-of-20 (per-agent) | joint best-of-20 | 결정적(μ) | CVM | CVM-S(20) |
+|---|---|---|---|---|---|
+| zero-shot-eth | 0.74/1.29 | 0.96/1.84 | 1.05/2.01 | 1.33/2.61 | 1.09/2.09 |
+| finetuned-eth | 0.62/0.98 | 0.89/1.66 | 0.91/1.75 | 1.33/2.61 | 1.09/2.09 |
+| scratch-rtls | 0.58/0.92 | 0.84/1.58 | 0.83/1.64 | 1.33/2.61 | 1.09/2.09 |
 <!-- RTLS_TRANSFER_TABLE:END -->
 
 <!-- COLLISION_TABLE:START -->
-(`foresight evaluate-rtls` 가 채운다)
+| 방법 | AP (AUPRC) | AUROC | 최고 F1 @임계 | 정밀도 / 재현율 | 오경보/시간 | 평균 선행시간 (s) |
+|---|---|---|---|---|---|---|
+| zero-shot-eth | 0.016 | 0.815 | 0.038 @ 0.70 | 0.02 / 0.29 | 20516.7 | 1.81 |
+| zero-shot-eth_det | 0.008 | 0.651 | 0.028 @ 0.10 | 0.01 / 0.32 | 30661.1 | 1.91 |
+| 지오펜스 (현재 거리) | 0.084 | 0.914 | 0.088 @ r<1.5m | 0.05 / 0.34 | 9327.8 | 1.62 |
+| CVM-S (20 샘플) | 0.015 | 0.797 | 0.038 @ 0.70 | 0.02 / 0.16 | 10394.4 | 1.55 |
+| finetuned-eth | 0.024 | 0.900 | 0.053 @ 0.70 | 0.03 / 0.28 | 13405.6 | 1.62 |
+| finetuned-eth_det | 0.011 | 0.666 | 0.040 @ 0.10 | 0.02 / 0.34 | 22883.3 | 1.77 |
+| scratch-rtls | 0.026 | 0.903 | 0.055 @ 0.70 | 0.03 / 0.30 | 13950.0 | 1.60 |
+| scratch-rtls_det | 0.009 | 0.658 | 0.037 @ 0.10 | 0.02 / 0.33 | 23905.6 | 1.81 |
+
+장면 37,895 · 쌍 395,781 · 양성 260 (0.07%) · 이미 근접해 제외 64 · 스트림 1.80 h · d_safe 1.0 m · 장면 1/10 부분 샘플 (오경보/시간은 외삽)
 <!-- COLLISION_TABLE:END -->
 
-양성 = 4.8 s 안에 작업자-차량 거리 < 1.0 m 인 쌍. 지오펜스(현재 거리)는 "이미 가까운" 쌍을 정확히 잡지만 선행시간이 0.4 s 안팎이고,
-분포 기반 위험 점수는 선행시간을 산다. 정의·경보 정책·해석: [`docs/serving_streaming.md`](docs/serving_streaming.md) §3–4
+**양성 정의**: 예측 시점에 1.0 m 밖에 있던 작업자-차량 쌍이 4.8 s 안에 1.0 m 안으로 들어오는 경우. 이미 가까운 쌍
+(<!-- num:collision_eval.n_already_close -->64<!-- /num -->개)은 "사전 경보" 대상이 아니라 제외했다. 양성이
+<!-- num:collision_eval.positive_rate:.2% -->0.07%<!-- /num --> 로 극히 드물어 점수의 **순위 품질(AP·AUROC)** 로 읽어야 하고,
+오경보/시간은 프레임·쌍 단위 점수를 1/10 샘플에서 외삽한 값이라 경보 정책(연속 2 프레임·쿨다운 5 s) 적용 **전**의 상한이다.
+
+**결과는 안전 거리에 따라 갈린다.** d_safe 1.0 m 에서는 현재 거리만 쓰는 지오펜스가
+AP <!-- num:collision_eval.methods.geofence.ap:.3f -->0.084<!-- /num --> · AUROC <!-- num:collision_eval.methods.geofence.auroc:.3f -->0.914<!-- /num --> 로
+가장 좋다. RTLS 로 학습한 모델의 분포 기반 위험 점수는 AUROC <!-- num:collision_eval.methods.scratch-rtls.auroc:.3f -->0.903<!-- /num --> 으로
+근접하지만 AP 는 <!-- num:collision_eval.methods.scratch-rtls.ap:.3f -->0.026<!-- /num --> 이다. 이유는 규모에 있다: 4.8 s 예측 오차
+(best-of-20 ADE <!-- num:rtls_transfer.results.scratch-rtls.best_of_k_per_agent.ade:.2f -->0.58<!-- /num --> m, 결정적
+<!-- num:rtls_transfer.results.scratch-rtls.deterministic.ade:.2f -->0.83<!-- /num --> m)가 d_safe 와 같은 크기라,
+"지금 1.5 m 안에 있다"는 사실을 예측이 넘어서지 못한다.
+
+d_safe 를 2.0 m 로 키우면(예측 오차가 안전 거리의 절반) 순서가 바뀐다. 학습 모델이
+AP <!-- num:collision_eval_dsafe2.methods.scratch-rtls.ap:.3f -->0.465<!-- /num --> · 최고 F1 <!-- num:collision_eval_dsafe2.methods.scratch-rtls.best_f1.f1:.3f -->0.508<!-- /num --> 로
+지오펜스(AP <!-- num:collision_eval_dsafe2.methods.geofence.ap:.3f -->0.341<!-- /num --> · F1 <!-- num:collision_eval_dsafe2.methods.geofence.best_f1.f1:.3f -->0.383<!-- /num -->)를
+앞선다. 오경보율이 비슷한 지점(모델 임계 0.7 vs 지오펜스 r<2.5 m)에서 재현율 0.44 vs 0.35, 평균 선행시간 1.64 s vs 1.27 s — 더 일찍, 더 많이 잡으면서 오경보는 적다.
+
+<details><summary>d_safe = 2.0 m 표 (<code>results/collision_eval_dsafe2.json</code>)</summary>
+
+<!-- COLLISION_TABLE_DSAFE2:START -->
+| 방법 | AP (AUPRC) | AUROC | 최고 F1 @임계 | 정밀도 / 재현율 | 오경보/시간 | 평균 선행시간 (s) |
+|---|---|---|---|---|---|---|
+| zero-shot-eth | 0.353 | 0.841 | 0.444 @ 0.30 | 0.36 / 0.57 | 76905.6 | 1.89 |
+| zero-shot-eth_det | 0.219 | 0.704 | 0.421 @ 0.10 | 0.41 / 0.43 | 46822.2 | 1.84 |
+| 지오펜스 (현재 거리) | 0.341 | 0.900 | 0.383 @ r<2.5m | 0.42 / 0.35 | 37505.6 | 1.27 |
+| CVM-S (20 샘플) | 0.286 | 0.814 | 0.363 @ 0.50 | 0.33 / 0.41 | 63533.3 | 1.93 |
+| finetuned-eth | 0.447 | 0.891 | 0.492 @ 0.50 | 0.45 / 0.54 | 50627.8 | 1.74 |
+| finetuned-eth_det | 0.246 | 0.700 | 0.448 @ 0.10 | 0.49 / 0.42 | 33516.7 | 1.78 |
+| scratch-rtls | 0.465 | 0.896 | 0.508 @ 0.50 | 0.46 / 0.57 | 50933.3 | 1.77 |
+| scratch-rtls_det | 0.264 | 0.715 | 0.469 @ 0.10 | 0.49 / 0.45 | 35077.8 | 1.81 |
+
+장면 37,895 · 쌍 384,804 · 양성 13,669 (3.55%) · 이미 근접해 제외 11,041 · 스트림 1.80 h · d_safe 2.0 m · 장면 1/10 부분 샘플 (오경보/시간은 외삽)
+<!-- COLLISION_TABLE_DSAFE2:END -->
+
+![충돌 사전 경보 PR 곡선, d_safe 2 m](results/figures/collision_pr_dsafe2.png)
+
+</details>
+
+두 설정이 같이 말하는 것:
+
+- 평균 궤적 하나로 계산한 결정적 위험(`_det`)은 두 설정 모두에서 무너진다
+  (AUROC <!-- num:collision_eval.methods.scratch-rtls_det.auroc:.2f -->0.66<!-- /num --> / <!-- num:collision_eval_dsafe2.methods.scratch-rtls_det.auroc:.2f -->0.72<!-- /num -->).
+  위험 점수는 **분포**에서 나와야 한다 — 같은 미래(joint sample) 안에서 최소 거리를 세는 §3 의 설계가 맞았다.
+- RTLS 적응이 순위 품질을 바꾼다: zero-shot → RTLS 학습이 AUROC <!-- num:collision_eval.methods.zero-shot-eth.auroc:.3f -->0.815<!-- /num --> → 0.903,
+  d_safe 2 m AP <!-- num:collision_eval_dsafe2.methods.zero-shot-eth.ap:.3f -->0.353<!-- /num --> → 0.465. 등속 모델(CVM-S)은 두 설정 모두 가장 나쁘다
+  (AUROC <!-- num:collision_eval.methods.cvm.auroc:.3f -->0.797<!-- /num --> / <!-- num:collision_eval_dsafe2.methods.cvm.auroc:.3f -->0.814<!-- /num -->).
+- 예측 모델이 값을 내는 조건은 **예측 오차 ≪ 안전 거리** 다. 현장에서는 d_safe(반응 시간 × 속도)를 먼저 정하고, 그 스케일에서
+  오차가 충분히 작은지를 이 절의 절차(`foresight evaluate-rtls --d-safe`)로 확인한 뒤 배치해야 한다.
+
+운영 구성은 그래서 "지오펜스 반경(넓게) 안의 쌍을 risk 로 우선순위화"이고, 소비자의 경보 정책은 그 위에서 알림 수를 줄인다.
+정의·경보 정책·해석: [`docs/serving_streaming.md`](docs/serving_streaming.md) §3–4
+
+![충돌 사전 경보 PR 곡선](results/figures/collision_pr.png)
 
 ## 5. 아키텍처
 
@@ -153,12 +232,17 @@ docker compose --profile stream up --build       # + redpanda + 재생 생산자
 - **7.6K 파라미터 모델은 INT8 이 오히려 느리다.** Q/DQ 커널 오버헤드가 연산 절감보다 크다. 속도는 ONNX Runtime fp32 + 1 스레드가
   최선이었고, 병목은 모델이 아니라 20 샘플 후처리와 전처리였다. 토치 4 스레드는 OpenMP 스핀 대기로 100배 느려진다.
 - **CPU 로 충분했다.** 연산이 아니라 파이썬 루프(공식 데이터 준비 211 s → 1 s)와 프로세스 병렬(분할당 1 스레드)이 시간을 결정했다.
+- **단순한 기준선을 먼저 이겨야 하고, 이기는 조건을 숫자로 적어야 한다.** 충돌 사전 경보에서 d_safe 1 m 는 "현재 거리" 지오펜스가
+  이겼고(AUROC 0.914 vs 0.903), 2 m 는 예측 분포가 이겼다(AP 0.465 vs 0.341). 경계는 예측 오차 대 안전 거리의 비율이었다.
+  결정적 μ 로 계산한 위험은 어디서나 무너졌다(AUROC 0.66–0.72). 기대와 다른 절반을 그대로 싣는 것이 이 프로젝트에서 가장 중요한 결과라고 생각한다.
 
 ## 9. 한계
 
 - ETH/UCY 는 보행자 데이터고 RTLS 는 **합성**이다. 지게차의 운동학·현장 레이아웃·행동은 단순화됐다. RTLS 결과는 파이프라인과
   평가 절차의 시연이지 검증된 안전 성능이 아니다. 실제 배치 전에는 현장 데이터로 재학습·재보정이 필요하다.
 - 충돌 라벨은 측정 위치(σ 0.15 m) 기준이라 d_safe 경계 근처가 흔들린다. 상대 비교는 공정하지만 절대 수치는 그만큼 보수적으로 읽어야 한다.
+- 충돌 경보 평가는 프레임·쌍 단위의 순위 평가다. 경보 정책(연속 프레임·쿨다운)을 거친 뒤의 실제 알림 수와 현장 수용성은
+  재생 스트림(`foresight stream`)에서 따로 재야 하며, 이 저장소는 그 도구까지만 제공한다.
 - best-of-20 재현 수치는 시드에 따라 ±0.01 정도 흔들리고, ETH 는 테스트가 작아(181명) 더 크게 흔들린다. 표에 표준편차를 같이 둔다.
 - 벤치마크는 학습 프로세스와 같은 4 vCPU 에서 쟀다. 1 스레드 수치와 상대 비교는 안정적이지만 절대값은 유휴 머신에서 더 낮다.
 - Kafka/Redpanda 경로는 파일 재생과 동일한 소비자 코드로 구현했지만, 실제 브로커 부하·재처리·정확히 한 번 의미론은 다루지 않았다.

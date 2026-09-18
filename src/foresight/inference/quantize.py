@@ -24,6 +24,7 @@ import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import onnx
@@ -54,7 +55,7 @@ class SceneCalibrationReader:
         self,
         scenes: SceneSet,
         indices: np.ndarray,
-        kernel: str = "velocity",
+        kernel: Literal["velocity", "position"] = "velocity",
         normalize: bool = True,
     ) -> None:
         self.scenes, self.indices = scenes, indices
@@ -67,7 +68,7 @@ class SceneCalibrationReader:
             return None
         v, a = preprocess(
             self.scenes.scene(i)[:, : self.scenes.obs_len], self.kernel, self.normalize
-        )  # type: ignore[arg-type]
+        )
         return {"v": v, "a": a}
 
     def rewind(self) -> None:
@@ -181,4 +182,6 @@ def evaluate_onnx_accuracy(
         rel = M.sample_relative(params, k, generator=g)
         bok.append(M.best_of_k_per_agent(M.relative_to_absolute(rel, last), gt))
     d, b = M.summarize(det), M.summarize(bok)
-    return OnnxAccuracy(d["ade"], d["fde"], b["ade"], b["fde"], len(test), d["n_agents"], k, seed)
+    return OnnxAccuracy(
+        d["ade"], d["fde"], b["ade"], b["fde"], len(test), int(d["n_agents"]), k, seed
+    )

@@ -137,6 +137,7 @@ def evaluate_rtls(
     max_scenes: int | None = None,
     every: int = 1,
     threads: int = 1,
+    figure: str = "results/figures/collision_pr.png",
 ) -> None:
     """RTLS 테스트에서 (1) 궤적 ADE/FDE 3 프로토콜 + CVM (2) 충돌 경보 품질(AP/AUROC/F1/선행시간)을 평가한다."""
     import numpy as np
@@ -146,7 +147,7 @@ def evaluate_rtls(
     from foresight.data.ethucy import SceneSet
     from foresight.eval.collision import evaluate_collision, plot_pr_curves, save_collision_eval
     from foresight.eval.evaluate import EvalResult, evaluate_model, load_model
-    from foresight.inference.predictor import TorchPredictor
+    from foresight.inference.predictor import Predictor, TorchPredictor
 
     torch.set_num_threads(threads)
     scenes = SceneSet.load(_abs(data_dir) / "test.npz")
@@ -179,7 +180,7 @@ def evaluate_rtls(
     ds = SceneGraphDataset(scenes)
     seed_list = tuple(int(s) for s in seeds.split(","))
     traj: dict[str, dict] = {}
-    predictors: dict[str, object] = {}
+    predictors: dict[str, Predictor | None] = {}
     for name, ck in zip(names.split(","), ckpts.split(",")):
         model = load_model(_abs(ck))
         res: EvalResult = evaluate_model(model, ds, k=k, seeds=seed_list, split="rtls")
@@ -232,7 +233,7 @@ def evaluate_rtls(
     )
     ev = evaluate_collision(
         scenes, {**predictors, "_baselines": None}, d_safe=d_safe, k=k, sample_fraction=1.0 / every
-    )  # type: ignore[arg-type]
+    )
     save_collision_eval(ev, _abs(collision_out))
     for m, e in ev.methods.items():
         log.info(
@@ -249,10 +250,10 @@ def evaluate_rtls(
     plot_pr_curves(
         scenes,
         {**predictors, "_baselines": None},
-        _abs("results/figures/collision_pr.png"),
+        _abs(figure),
         d_safe=d_safe,
         k=k,
-    )  # type: ignore[arg-type]
+    )
 
 
 @app.command()

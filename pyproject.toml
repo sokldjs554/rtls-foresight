@@ -76,6 +76,7 @@ foresight = ["data/manifests/*.json", "py.typed"]
 line-length = 100
 target-version = "py310"
 src = ["src", "tests", "scripts", "tools"]
+extend-exclude = ["notebooks"]  # 탐색용 노트북은 lint 대상에서 제외 (CI/Makefile 범위와 pre-commit 을 일치)
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "W", "RUF"]

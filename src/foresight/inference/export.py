@@ -26,6 +26,7 @@ import time
 import warnings
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import onnx
@@ -223,7 +224,7 @@ def export_all(
     fp32 = out / FP32_NAME
     info = export_onnx(model, fp32)
     parity = check_parity(model, fp32, parity_scenes(data_dir))
-    manifest: dict[str, object] = {
+    manifest: dict[str, Any] = {
         "source_checkpoint": _relpath(ckpt),
         "source_sha256": sha256_of(ckpt),
         "param_count": model.num_parameters(),
@@ -271,7 +272,7 @@ def export_all(
             manifest["files"][fname] = {
                 "sha256": sha256_of(qr.path),
                 "bytes": qr.path.stat().st_size,
-            }  # type: ignore[index]
+            }
             score = acc.ade_bo20 + acc.ade_det
             if score < best_ade:
                 best_ade, best_name = score, fname

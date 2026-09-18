@@ -111,9 +111,10 @@ def seeds() -> None:
         import numpy as np
 
         ade = np.array([v[0] for v in got])
-        out[s] = {"runs": vals, "ade_mean": float(ade.mean()), "ade_std": float(ade.std())}
+        std = float(ade.std(ddof=1)) if len(ade) > 1 else 0.0
+        out[s] = {"runs": vals, "ade_mean": float(ade.mean()), "ade_std": std}
         cells = [f"{v[0]:.2f}/{v[1]:.2f}" if v else "-" for v in vals]
-        rows.append(f"| {s} | {' | '.join(cells)} | {ade.mean():.3f} ± {ade.std():.3f} |")
+        rows.append(f"| {s} | {' | '.join(cells)} | {ade.mean():.3f} ± {std:.3f} |")
     (ROOT / "results" / "seeds.json").write_text(
         json.dumps(
             {"splits": out, "table_markdown": "\n".join(rows)}, indent=1, ensure_ascii=False

@@ -54,6 +54,7 @@ stages:
     metrics:
       - results/rtls_transfer.json: { cache: false }
       - results/collision_eval.json: { cache: false }
+      - results/collision_eval_dsafe2.json: { cache: false }
 
   export:
     cmd: foresight export --ckpt results/checkpoints/eth/seed${seed}/best.pth --out artifacts/onnx

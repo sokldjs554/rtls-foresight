@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -93,7 +94,7 @@ def evaluate_model(
             pred_abs = M.relative_to_absolute(rel, last)
             pa.append(M.best_of_k_per_agent(pred_abs, gt_abs))
             jo.append(M.best_of_k_joint(pred_abs, gt_abs))
-            cv = constant_velocity(
+            cv_s = constant_velocity(
                 pos[:, : ds.obs_len].astype(np.float64),
                 ds.scenes.pred_len,
                 k=k,
@@ -101,7 +102,7 @@ def evaluate_model(
                 rng=rng,
             )
             cvs.append(
-                M.best_of_k_per_agent(torch.from_numpy(cv).permute(0, 2, 1, 3).float(), gt_abs)
+                M.best_of_k_per_agent(torch.from_numpy(cv_s).permute(0, 2, 1, 3).float(), gt_abs)
             )
         per_seed_pa.append(M.summarize(pa))
         per_seed_joint.append(M.summarize(jo))
@@ -115,7 +116,7 @@ def evaluate_model(
     return EvalResult(
         split=split,
         n_scenes=len(ds),
-        n_agents=per_seed_pa[0]["n_agents"],
+        n_agents=int(per_seed_pa[0]["n_agents"]),
         k=k,
         seeds=list(seeds),
         best_of_k_per_agent={"ade": float(ade_pa.mean()), "fde": float(fde_pa.mean())},
@@ -191,7 +192,7 @@ def save_results(
     path: Path, results: dict[str, EvalResult], official: dict[str, EvalResult] | None = None
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
+    payload: dict[str, Any] = {
         "paper": {k: {"ade": v[0], "fde": v[1]} for k, v in PAPER_TABLE1.items()},
         "sgan_paper": {k: {"ade": v[0], "fde": v[1]} for k, v in PAPER_SGAN.items()},
         "ours": {k: asdict(v) for k, v in results.items()},

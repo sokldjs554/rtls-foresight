@@ -1,0 +1,100 @@
+{
+ "d_safe": 1.0,
+ "n_scenes": 37895,
+ "results": {
+  "zero-shot-eth": {
+   "ckpt": "results/checkpoints/eth/seed0/best.pth",
+   "best_of_k_per_agent": {
+    "ade": 0.7354007760683695,
+    "fde": 1.2875370184580486
+   },
+   "best_of_k_per_agent_std": {
+    "ade": 0.0002824197362254673,
+    "fde": 0.0006215745531623937
+   },
+   "best_of_k_joint": {
+    "ade": 0.9640096426010132,
+    "fde": 1.8436928192774455
+   },
+   "deterministic": {
+    "ade": 1.0461403131484985,
+    "fde": 2.013263702392578,
+    "n_agents": 259601
+   },
+   "cvm": {
+    "ade": 1.3326486349105835,
+    "fde": 2.610529661178589,
+    "n_agents": 259601
+   },
+   "cvm_sampled": {
+    "ade": 1.0856049060821533,
+    "fde": 2.088069200515747
+   },
+   "n_scenes": 37895,
+   "n_agents": 259601
+  },
+  "finetuned-eth": {
+   "ckpt": "results/checkpoints/rtls-finetune-eth/best.pth",
+   "best_of_k_per_agent": {
+    "ade": 0.615256150563558,
+    "fde": 0.9782602787017822
+   },
+   "best_of_k_per_agent_std": {
+    "ade": 0.00029010949283681876,
+    "fde": 0.0004997846395919638
+   },
+   "best_of_k_joint": {
+    "ade": 0.8875724077224731,
+    "fde": 1.662197192509969
+   },
+   "deterministic": {
+    "ade": 0.9050436019897461,
+    "fde": 1.7502496242523193,
+    "n_agents": 259601
+   },
+   "cvm": {
+    "ade": 1.3326486349105835,
+    "fde": 2.610529661178589,
+    "n_agents": 259601
+   },
+   "cvm_sampled": {
+    "ade": 1.0856049060821533,
+    "fde": 2.088069200515747
+   },
+   "n_scenes": 37895,
+   "n_agents": 259601
+  },
+  "scratch-rtls": {
+   "ckpt": "results/checkpoints/rtls-scratch-fast/best.pth",
+   "best_of_k_per_agent": {
+    "ade": 0.5844793717066447,
+    "fde": 0.9244415958722433
+   },
+   "best_of_k_per_agent_std": {
+    "ade": 0.0002405677938539827,
+    "fde": 0.0007017806585378872
+   },
+   "best_of_k_joint": {
+    "ade": 0.8366915980974833,
+    "fde": 1.583013375600179
+   },
+   "deterministic": {
+    "ade": 0.8343803286552429,
+    "fde": 1.6436941623687744,
+    "n_agents": 259601
+   },
+   "cvm": {
+    "ade": 1.3326486349105835,
+    "fde": 2.610529661178589,
+    "n_agents": 259601
+   },
+   "cvm_sampled": {
+    "ade": 1.0856049060821533,
+    "fde": 2.088069200515747
+   },
+   "n_scenes": 37895,
+   "n_agents": 259601
+  }
+ },
+ "table_markdown": "| 모델 | best-of-20 (per-agent) | joint best-of-20 | 결정적(μ) | CVM | CVM-S(20) |\n|---|---|---|---|---|---|\n| zero-shot-eth | 0.74/1.29 | 0.96/1.84 | 1.05/2.01 | 1.33/2.61 | 1.09/2.09 |\n| finetuned-eth | 0.62/0.98 | 0.89/1.66 | 0.91/1.75 | 1.33/2.61 | 1.09/2.09 |\n| scratch-rtls | 0.58/0.92 | 0.84/1.58 | 0.83/1.64 | 1.33/2.61 | 1.09/2.09 |"
+}

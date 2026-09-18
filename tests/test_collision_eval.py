@@ -8,6 +8,7 @@ from foresight.data.ethucy import SceneSet
 from foresight.eval.collision import (
     auroc,
     average_precision,
+    collision_table,
     evaluate_collision,
     pair_labels,
     stream_hours,
@@ -79,3 +80,28 @@ def test_evaluate_collision_baselines_rank_head_on_higher() -> None:
     ev = evaluate_collision(ss, {"_baselines": None}, d_safe=1.0, k=20)
     assert ev.n_positive == 1 and ev.n_pairs == 2
     assert ev.methods["cvm"]["ap"] == 1.0 and ev.methods["geofence"]["ap"] == 1.0
+
+
+def test_false_alarms_per_hour_extrapolated_by_sample_fraction() -> None:
+    """부분 샘플(every=k) 평가에서는 오경보/시간을 1/비율로 외삽하고, 이미 근접한 쌍은 라벨에서 뺀다."""
+    t = np.arange(20, dtype=np.float64)
+    walk = np.stack([t * 0.5, np.zeros(20)], -1)
+    parallel = _scene(
+        walk, walk + np.array([0.0, 2.0])
+    )  # 2 m 간격 평행 이동: 음성, 지오펜스 r<3m 는 오경보
+    already = _scene(walk, walk + np.array([0.0, 0.5]))  # 0.5 m: 이미 근접 → 제외
+    ss = SceneSet(
+        pos=np.concatenate([parallel.pos, already.pos]),
+        scene_index=np.array([[0, 2], [2, 4]]),
+        meta=[("zone=0", 0.0), ("zone=0", 8980.0)],  # 9000 빈 = 1 h
+        obs_len=8,
+        pred_len=12,
+        agent_type=np.array([0, 1, 0, 1], dtype=np.int8),
+    )
+    full = evaluate_collision(ss, {"_baselines": None}, d_safe=1.0, k=20)
+    half = evaluate_collision(ss, {"_baselines": None}, d_safe=1.0, k=20, sample_fraction=0.5)
+    assert full.n_pairs == 1 and full.n_positive == 0 and full.n_already_close == 1
+    fa_full = full.methods["geofence"]["thresholds"]["r<3.0m"]["false_alarms_per_hour"]
+    fa_half = half.methods["geofence"]["thresholds"]["r<3.0m"]["false_alarms_per_hour"]
+    assert abs(fa_full - 1.0) < 1e-9 and abs(fa_half - 2.0) < 1e-9
+    assert half.sample_fraction == 0.5 and "부분 샘플" in collision_table(half)

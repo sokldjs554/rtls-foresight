@@ -10,7 +10,7 @@ import shutil
 from pathlib import Path
 
 
-def on_post_build(config, **kwargs):  # noqa: ANN001, ANN003
+def on_post_build(config, **kwargs):
     root = Path(config["docs_dir"]).parent
     src = root / "results" / "figures"
     if src.exists():

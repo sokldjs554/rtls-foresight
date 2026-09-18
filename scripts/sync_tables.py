@@ -19,6 +19,7 @@ BLOCKS: dict[str, tuple[Path, str]] = {
     "ABLATION_TABLE": (ROOT / "results" / "ablation.json", "table_markdown"),
     "RTLS_TRANSFER_TABLE": (ROOT / "results" / "rtls_transfer.json", "table_markdown"),
     "COLLISION_TABLE": (ROOT / "results" / "collision_eval.json", "table_markdown"),
+    "COLLISION_TABLE_DSAFE2": (ROOT / "results" / "collision_eval_dsafe2.json", "table_markdown"),
     "TRAIN_COST": (ROOT / "results" / "train_cost.json", "table_markdown"),
     "SEEDS_TABLE": (ROOT / "results" / "seeds.json", "table_markdown"),
 }
@@ -39,11 +40,12 @@ def sync(check: bool) -> int:
         text = target.read_text(encoding="utf-8")
         new = text
         for name in BLOCKS:
-            pat = re.compile(rf"(<!-- {name}:START -->\n)(.*?)(\n<!-- {name}:END -->)", re.S)
+            # 빈 블록(START 바로 다음 줄이 END)도 채울 수 있도록 END 앞 개행은 선택으로 둔다
+            pat = re.compile(rf"(<!-- {name}:START -->\n)(.*?)\n?(<!-- {name}:END -->)", re.S)
             table = render(name)
             if table is None:
                 continue
-            new = pat.sub(lambda m, t=table: f"{m.group(1)}{t}{m.group(3)}", new)
+            new = pat.sub(lambda m, t=table: f"{m.group(1)}{t}\n{m.group(3)}", new)
         if new != text:
             stale += 1
             if check:

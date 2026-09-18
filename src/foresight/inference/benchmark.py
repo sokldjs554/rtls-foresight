@@ -46,11 +46,12 @@ from foresight.data.graph import (
 from foresight.inference.export import FP32_NAME, INT8_NAME, load_model, resolve_checkpoint
 from foresight.inference.onnx_backend import OnnxPredictor
 from foresight.inference.predictor import Predictor, TorchPredictor
+from foresight.models import SocialSTGCNN
 from foresight.utils import get_logger, project_root
 
 log = get_logger("foresight.inference.benchmark")
 
-PAPER_CLAIM = {
+PAPER_CLAIM: dict[str, Any] = {
     "inference_time_s": 0.002,
     "params": 7563,
     "source": "Mohamed et al., CVPR 2020, Table 2 (Speed and parameter comparison)",
@@ -139,7 +140,7 @@ def _torch_threads(t: int) -> None:
 
 
 def build_backends(
-    model: torch.nn.Module, onnx_dir: Path, threads: int, include_compile: bool
+    model: SocialSTGCNN, onnx_dir: Path, threads: int, include_compile: bool
 ) -> dict[str, Callable[[], Predictor]]:
     def eager() -> Predictor:
         _torch_threads(threads)

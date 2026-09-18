@@ -73,16 +73,16 @@ def load_predictor(backend: str = "onnx", threads: int = 1, warmup: bool = True)
     path = resolve_onnx_path(backend)
     if not path.exists():
         _export_missing(path, backend)
-    pred = OnnxPredictor(
+    opred = OnnxPredictor(
         path,
         threads=threads,
         name=backend if backend == "onnx-int8" else "onnx-fp32",
         torch_threads=1,
     )
-    pred.model_path = path  # type: ignore[attr-defined]
+    opred.model_path = path  # type: ignore[attr-defined]
     if warmup:
-        pred.warmup()
-    return pred
+        opred.warmup()
+    return opred
 
 
 def _export_missing(path: Path, backend: str) -> None:
