@@ -7,7 +7,7 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 
 > 데이터는 공개 보행자 궤적(ETH/UCY)과 **합성** RTLS 스트림입니다. 실제 현장·고객 데이터는 사용하지 않았습니다.
 
-`데모` · `1. 문제` · `2. 왜 이 주제인가` · `3. 무엇이 다른가` · `4. 결과` · `5. 아키텍처` · `6. 실행` · `7. 실험 기록` · `8. 배운 것` · `9. 한계`
+`데모` · `1. 문제` · `2. 왜 이 주제인가` · `3. 무엇이 다른가` · `역량 지도` · `4. 결과` · `5. 아키텍처` · `6. 실행` · `7. 실험 기록` · `8. 배운 것` · `9. 한계`
 
 ---
 
@@ -64,6 +64,26 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 | 추론 | 학습 코드로 그대로 서빙 | ONNX(dynamic N) → 정적 INT8, eager/compile/ORT 벤치, **전처리까지 포함한** 지연 예산 |
 | 서비스 | 노트북에서 끝 | FastAPI + Prometheus, Kafka/Redpanda 스트림 소비자, 위험 점수 → 경보 정책(연속 프레임 + 쿨다운) |
 | 문서 | README 수치 손으로 복사 | MLflow run·레지스트리, DVC 파이프라인, README 수치를 `results/*.json` 에서 **자동 동기화**(CI 검사) |
+
+## 역량 지도 — 무엇을 어디서 보여 주는가
+
+| 역량 | 이 저장소의 근거 |
+|---|---|
+| AI 모델 설계·학습 | Social-STGCNN 을 처음부터 구현(`src/foresight/models`), ETH/UCY 5분할 250 epoch CPU 학습, ablation 4종·학습 시드 3개 (§4.1, `docs/paper_reproduction.md`) |
+| 데이터 전처리 파이프라인 | ETH/UCY 벡터화 전처리(211 s → 1 s), 합성 RTLS 시뮬레이터 → Polars/DuckDB 시간 파티션 파이프라인(85M 행, 피크 2.3 GB) (§4.3, `docs/data_pipeline.md`) |
+| 모델 성능 평가·개선 | 세 평가 프로토콜 + 등속 기준선, 충돌 경보 AP/AUROC/선행시간·d_safe 민감도, 미세조정·처음부터 학습 비교 (§4.2, §4.5, `docs/evaluation_methodology.md`) |
+| 서비스 적용을 위한 추론 최적화 | ONNX 동적 배치 export, 정적 INT8, torch.compile, 1 스레드 서빙 벤치마크, 부하 테스트 p95 55 ms (§4.4, `docs/inference_optimization.md`, `docs/runbook.md`) |
+| 실험 결과 문서화·공유 | 실험 로그 E0–E8, 논문 재현 보고서, 모델·데이터 카드, ADR 5건, mkdocs 사이트, README 수치 자동 동기화(`tools/check_readme_numbers.py`) |
+| Python 기반 개발 | 타입 힌트 + mypy 0 오류, ruff, pytest 100여 개, Typer CLI, Hydra 설정 (`pyproject.toml`, `tests/`) |
+| 머신러닝 기본 이론 | 이변량 가우시안 NLL, 그래프 합성곱·정규화 라플라시안, 오라클(best-of-K) 대 결정적 지표의 차이, 극단 불균형에서의 AP/AUROC (`docs/serving_streaming.md` §3, `docs/evaluation_methodology.md`) |
+| 데이터 분석·전처리 경험 | EDA 노트북 2편(ETH/UCY 장면 통계, RTLS 품질·속도·혼잡·라벨 불균형), 데이터 카드 (`notebooks/`, `docs/data_card.md`) |
+| Git 기반 협업 | 이슈·PR 템플릿, CODEOWNERS, 기여 가이드, pre-commit, Dependabot, CI 게이트(lint·타입·테스트·문서·Terraform), 문제 해결 이력을 이슈로 기록 (`.github/`, `CONTRIBUTING.md`, Issues) |
+| 문제 해결 중심 소통 | 증상 → 원인 → 조치 → 검증 형식의 이슈 5건(OOM, 평가 크래시, CI 기계 간 차이, 기준선 우세, 스레드 스핀), 실험 로그의 실패 기록, 기대와 다른 결과를 그대로 실은 §4.5 |
+| PyTorch 또는 TensorFlow | PyTorch 로 전 과정 구현; 같은 가중치를 TensorFlow(SavedModel, `models/tf_port.py`)와 순수 JavaScript(`demo/foresight.js`)로 이식해 셋 다 수치 검증 |
+| MLOps 도구 활용 | MLflow(SQLite 추적 + 모델 레지스트리), DVC 파이프라인·S3 호환 원격, GitHub Actions, Docker/Compose, 재시작 안전 resume (`dvc.yaml`, `.github/workflows/ci.yml`) |
+| 클라우드 환경 운영 | Terraform(AWS ECS Fargate + ALB, CI 에서 validate), Render 블루프린트, GHCR 이미지, Prometheus 경보 규칙 + Grafana 대시보드, 런북(SLO·롤백·장애 대응) (`deploy/`, `docs/runbook.md`) |
+| 대규모 데이터 처리 | 85.4M 행 Parquet 파티션 처리 91.5 s, 스트리밍 소비자(파일 재생/Kafka), 상한이 있는 메모리 설계 (§4.3, `docs/data_pipeline.md` §4) |
+| 논문 구현·재현 | CVPR 2020 논문을 코드 기준으로 재현, 공식 체크포인트 재평가 열과 함께 표로 비교, 논문 서술과 코드가 다른 세 지점을 ablation 으로 측정 (`docs/paper_reproduction.md`, ADR-0002) |
 
 ## 4. 결과
 

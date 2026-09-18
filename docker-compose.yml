@@ -110,6 +110,28 @@ services:
     command: ["stream", "--source", "kafka", "--sink", "kafka", "--bootstrap", "redpanda:29092",
               "--topic", "rtls.positions", "--alerts-topic", "rtls.alerts", "--backend", "onnx", "--max-seconds", "300"]
 
+  # --- 관측성: Prometheus 가 api:/metrics 를 긁고 Grafana 가 프로비저닝된 대시보드로 보여 준다 (docs/runbook.md)
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports: ["9090:9090"]
+    depends_on: [api]
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+
 volumes:
   minio-data:
   mlflow-data:

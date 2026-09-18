@@ -1,0 +1,32 @@
+# 경보 규칙 — 임계는 docs/runbook.md 의 SLO 와 같다.
+groups:
+  - name: rtls-foresight
+    rules:
+      - alert: ForesightHighLatency
+        expr: histogram_quantile(0.95, sum(rate(foresight_request_latency_seconds_bucket{endpoint="/risk"}[2m])) by (le)) > 0.1
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "/risk p95 지연이 100 ms 를 넘었다"
+          description: "SLO 는 p95 100 ms (워커 1, 동시 사용자 10). 워커 수·스레드·백엔드(onnx-fp32)를 확인한다."
+      - alert: ForesightErrorRate
+        expr: sum(rate(foresight_requests_total{status!~"2.."}[5m])) / sum(rate(foresight_requests_total[5m])) > 0.01
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "비 2xx 응답 비율이 1 % 를 넘었다"
+          description: "422 는 입력 검증 실패(클라이언트), 5xx 는 서버. 로그의 요청 ID 로 추적한다."
+      - alert: ForesightNoTraffic
+        expr: sum(rate(foresight_requests_total[10m])) == 0
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "10 분간 요청이 없다"
+          description: "스트림 소비자나 게이트웨이가 죽었을 수 있다. consumer 컨테이너와 Kafka 지연을 확인한다."
+      - alert: ForesightAlertBurst
+        expr: sum(rate(foresight_alerts_total[5m])) * 3600 > 2000
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "시간당 경보(임계 초과 쌍) 환산치가 2,000 을 넘었다"
+          description: "임계·d_safe 설정 변경, 태그 노이즈 급증, 구역 혼잡 중 무엇인지 확인한다."

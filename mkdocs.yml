@@ -29,6 +29,7 @@ nav:
   - 데이터 파이프라인: data_pipeline.md
   - 추론 최적화: inference_optimization.md
   - 서빙·스트리밍: serving_streaming.md
+  - 운영 런북: runbook.md
   - 실험 로그: experiment_log.md
   - 모델 카드: model_card.md
   - 데이터 카드: data_card.md

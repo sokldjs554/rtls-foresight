@@ -1,0 +1,32 @@
+name: 버그 보고
+description: 재현 절차와 관찰된 결과를 적어 주세요. 기대와 다른 수치도 버그입니다.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇이 잘못됐나
+      description: 기대한 동작과 실제 동작. 수치라면 기대값·실제값을 같이.
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: 재현 절차
+      description: 명령과 설정(Hydra override, 데이터 프로파일, 체크포인트 경로).
+      render: shell
+    validations: { required: true }
+  - type: input
+    id: commit
+    attributes:
+      label: 커밋 / 버전
+      placeholder: git rev-parse --short HEAD
+  - type: textarea
+    id: env
+    attributes:
+      label: 환경
+      description: OS, Python, torch/onnxruntime 버전, CPU/GPU, 스레드 수.
+  - type: textarea
+    id: logs
+    attributes:
+      label: 로그·트레이스백
+      render: text

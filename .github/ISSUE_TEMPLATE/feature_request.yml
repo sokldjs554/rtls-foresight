@@ -1,0 +1,29 @@
+name: 기능 제안
+description: 해결하려는 문제부터 적어 주세요. 구현 방법은 그 다음입니다.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 어떤 문제를 푸는가
+      description: 누가, 언제, 왜 필요한지. 현재 우회 방법이 있다면 함께.
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 제안
+      description: 인터페이스(CLI 옵션, API 필드, 설정 키)와 기본값. 기존 동작과의 호환성.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 검토한 대안
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: 영향 범위
+      options:
+        - label: 모델 / 학습
+        - label: 데이터 파이프라인
+        - label: 평가 / 지표
+        - label: 추론 / 서빙 / 스트리밍
+        - label: 문서 / MLOps / 인프라

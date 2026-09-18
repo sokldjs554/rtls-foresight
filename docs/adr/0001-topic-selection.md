@@ -24,3 +24,16 @@ Social-STGCNN(CVPR 2020)을 처음부터 구현해 ETH/UCY 5개 분할의 ADE/FD
 ## 결과
 공고의 모든 항목이 구체적 산출물로 대응된다(README 표 참조). 위험: ETH/UCY 는 보행자 데이터라 공장 RTLS 와 분포가 다르다 —
 합성 RTLS 전이 실험은 "파이프라인 시연"이지 검증된 안전 성능이 아님을 문서에 명시한다.
+
+## 재검증 (2026-09-18)
+저장소를 공개한 뒤 같은 질문을 다시 확인했다: "이 주제가 흔한가?"
+
+- GitHub 에서 Social-STGCNN 은 공식 구현과 그 포크(STMGCN 등)만 검색되고, 이를 **처음부터 재구현해 공식 체크포인트와 출력을 맞춘
+  포트폴리오**나 **RTLS/UWB 충돌 사전 경보로 확장한 저장소**는 찾지 못했다
+  ([검색 1](https://github.com/abduallahmohamed/Social-STGCNN), [검색 2](https://github.com/topics/uwb-positioning?o=desc&s=stars)).
+- UWB RTLS + 지게차·작업자 충돌 예측은 상용 제품과 특허(예: [Trio Mobil](https://www.triomobil.com/en/blog/forklift-collision-avoidance-tech-in-2026),
+  [Ubiquicom Proximity Plus](https://www.ubiquicom.com/en/proximity-plus/), [Dmatek UWB-FAS](https://www.dmatektw.com/product/130))의 영역이고,
+  공개 코드로 궤적 **분포** 예측과 경보 정책까지 잇는 프로젝트는 검색되지 않았다.
+- 회사의 UWB RTLS 사례 페이지([data-flow.co.kr/uwbcase](https://data-flow.co.kr/uwbcase))가 확인되어 도메인 정합성도 유지된다.
+- 국내 취업 포트폴리오 가이드류는 "기획부터 배포까지"의 실전형 사이드 프로젝트를 권하고, 주제로는 여전히 챗봇·RAG·이미지 분류·추천이
+  주류다. 따라서 주제를 바꿀 이유는 없고, 대신 "희소하지만 공고와 무관"이 되지 않도록 공고 항목별 근거를 README 의 역량 지도에 둔다.

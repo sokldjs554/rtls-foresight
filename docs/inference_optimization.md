@@ -206,3 +206,25 @@ pytest tests/test_onnx_parity.py -q
 것이다 — 벤치마크 시점에 자체 학습 체크포인트가 아직 학습 중(매 분 갱신)이어서 재현 가능한 기준을 택했다.
 학습이 끝나면 `foresight export` 기본값(`results/checkpoints/eth/seed0/best.pth`)으로 다시 만들면 된다;
 지연 수치는 가중치와 무관하고 INT8 정확도 델타만 달라진다.
+
+## 부록 · TensorFlow SavedModel 경로
+
+서빙 팀이 TF Serving 이나 TFLite 를 쓰는 경우를 위해 같은 가중치를 TensorFlow 연산으로 다시 구성했다(`src/foresight/models/tf_port.py`).
+학습은 PyTorch 로만 하고, 이식은 추론 전용(가중치 동결)이다. 공식 코드의 `view` 축 교환은 NCHW 로 돌린 뒤 `tf.reshape` 로 재해석해
+torch 와 같은 메모리 해석을 얻고, BatchNorm 은 eval 아핀으로 접는다. CPU 의 `tf.nn.conv2d` 가 NHWC 만 받으므로 내부 배치는 NHWC 다.
+
+```python
+from foresight.demo.replay import export_weights
+from foresight.eval.evaluate import load_model
+from foresight.models.tf_port import SocialSTGCNNTF
+
+weights = export_weights(load_model("results/checkpoints/rtls-scratch-fast/best.pth"))
+SocialSTGCNNTF(weights).export_saved_model(
+    "artifacts/savedmodel"
+)  # 서명: v (1,2,8,None), a (8,None,None)
+```
+
+`tests/test_tf_parity.py` 가 PyTorch 출력과 1e-4 안에서 같은지, SavedModel 을 다시 읽어도 같은지 확인한다(CI `tf-parity` 잡).
+같은 방식의 이식이 두 개 더 있다: ONNX(§1, 서빙 기본 경로)와 순수 JavaScript(`demo/foresight.js`, 브라우저 데모).
+세 이식이 모두 같은 골든 입력에서 같은 출력을 내는 것이 "모델을 이해하고 있다"는 가장 싼 증거였다.
+

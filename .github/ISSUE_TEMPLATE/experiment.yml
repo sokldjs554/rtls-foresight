@@ -1,0 +1,28 @@
+name: 실험 제안
+description: 가설 → 측정 → 판단 기준을 먼저 정하고 시작합니다 (docs/experiment_log.md 에 결과를 남깁니다).
+labels: [experiment]
+body:
+  - type: input
+    id: hypothesis
+    attributes:
+      label: 가설 (한 문장)
+      placeholder: 예) 클램프 없는 로그 영역 NLL 이 best-of-20 FDE 를 0.05 이상 개선한다
+    validations: { required: true }
+  - type: textarea
+    id: setup
+    attributes:
+      label: 설정
+      description: 데이터 분할, Hydra override, 시드 수, 비교 기준선.
+      render: shell
+    validations: { required: true }
+  - type: textarea
+    id: metric
+    attributes:
+      label: 측정 지표와 판단 기준
+      description: 어떤 지표가 얼마나 움직여야 채택인지. 시드 분산(±0.01~0.06)보다 커야 의미가 있습니다.
+    validations: { required: true }
+  - type: textarea
+    id: cost
+    attributes:
+      label: 예상 비용
+      description: CPU 시간, 메모리, 저장 공간.

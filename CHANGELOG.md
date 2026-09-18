@@ -10,6 +10,10 @@
 - 학습 시드 분산 표(`results/seeds.json`, `docs/paper_reproduction.md` §2.1) — 표본 표준편차(ddof=1).
 - 충돌 사전 경보의 d_safe 민감도(1.0 m / 2.0 m) 평가와 표·PR 곡선(`results/collision_eval_dsafe2.json`), `evaluate-rtls --figure` 옵션, CI 스모크에 `evaluate-rtls` 단계.
 - mypy 0 오류(`src` 전체) — CI 에서 차단 검사로 전환.
+- 운영: Prometheus 경보 규칙 + Grafana 대시보드(compose `prometheus`/`grafana`), 런북(`docs/runbook.md`: SLO·배포·롤백·장애 대응),
+  Locust 부하 테스트 결과(`results/loadtest.json`), Terraform `fmt`·`validate` CI 잡(로컬 검증: AWS provider 5.100).
+- TensorFlow 이식 + SavedModel 내보내기(`models/tf_port.py`, `[tf]` extra, CI `tf-parity` 잡).
+- RTLS EDA 노트북(`notebooks/02_eda_rtls.ipynb`), 이슈 템플릿 3종, README 역량 지도, ADR-0001 주제 희소성 재검증.
 - 브라우저 데모(`demo/`): Social-STGCNN 전처리·순전파·샘플링·위험 점수·경보 정책을 순수 JS 로 포팅(`demo/foresight.js`,
   Node 로 PyTorch 와 수치 비교하는 `tests/test_demo_js.py`), 합성 RTLS 구역 60 s 재생 페이지, `foresight demo` 명령, README GIF.
 

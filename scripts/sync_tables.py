@@ -22,6 +22,7 @@ BLOCKS: dict[str, tuple[Path, str]] = {
     "COLLISION_TABLE_DSAFE2": (ROOT / "results" / "collision_eval_dsafe2.json", "table_markdown"),
     "TRAIN_COST": (ROOT / "results" / "train_cost.json", "table_markdown"),
     "SEEDS_TABLE": (ROOT / "results" / "seeds.json", "table_markdown"),
+    "LOADTEST_TABLE": (ROOT / "results" / "loadtest.json", "table_markdown"),
 }
 TARGETS = [ROOT / "README.md", *sorted((ROOT / "docs").glob("*.md"))]
 

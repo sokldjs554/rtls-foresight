@@ -21,3 +21,14 @@ make download prepare         # 데이터 (14 MB)
 ## 테스트 원칙
 - 데이터 로더·그래프는 공식 구현과 **비트 단위 동일**해야 한다 (`tests/test_graph.py`). 바꾸면 골든 픽스처를 다시 만들고 이유를 적는다.
 - 모델 구조 변경은 공식 체크포인트 로드 테스트를 깨뜨린다 — 의도한 것이면 `time_channel_swap` 같은 옵션으로 분기하고 기본값은 유지한다.
+
+## 이슈로 시작하기
+- 버그·기능·실험은 이슈 템플릿(`.github/ISSUE_TEMPLATE/`)으로 연다. 실험은 **가설 → 측정 → 판단 기준**을 먼저 적는다.
+- 해결한 뒤에는 이슈에 증상 → 원인 → 조치 → 검증 순으로 남기고 커밋 SHA 를 적는다. 남이 같은 문제를 만났을 때 검색되는 것이 목적이다.
+
+## 리뷰 체크리스트 (PR 템플릿과 같다)
+- 수치가 바뀌면 `results/*.json` 과 README/docs 표가 같이 바뀌었는가 (`make check-numbers`, `python scripts/sync_tables.py --check`).
+- 새 CLI 옵션·설정 키는 `docs/cli.md` 에 적혔는가. 새 실험은 `docs/experiment_log.md` 에 한 줄이라도 있는가.
+- 테스트는 골든 값·동일성·경계값 중 무엇을 지키는지 이름에 드러나는가. CI 가 스킵하는 테스트(데이터 필요)라면 로컬 실행 결과를 PR 에 적는다.
+- 브랜치 보호(권장): `main` 은 PR 로만, CI 필수(lint·tests·docs·terraform), 리뷰 1명.
+

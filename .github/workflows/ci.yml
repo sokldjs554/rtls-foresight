@@ -100,6 +100,30 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  tf-parity:
+    name: TensorFlow 이식 패리티 (SavedModel)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.11", cache: pip }
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -e ".[dev,tf]"
+      - run: pytest -q -p no:warnings tests/test_tf_parity.py
+        env: { TF_CPP_MIN_LOG_LEVEL: "2" }
+
+  terraform:
+    name: terraform fmt + validate (AWS ECS/ALB 정의)
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: deploy/terraform } }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8" }
+      - run: terraform fmt -check -recursive -diff
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate -no-color
+
   docs:
     name: mkdocs build
     runs-on: ubuntu-latest
