@@ -5,7 +5,7 @@
 #   docker run --rm -p 8000:8000 rtls-foresight:serve                 # onnx 백엔드, /health, /docs
 #   docker build --target train -t rtls-foresight:train . && docker run --rm rtls-foresight:train foresight --help
 
-FROM python:3.11-slim AS base
+FROM python:3.14-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1 \
     FORESIGHT_ROOT=/app OMP_WAIT_POLICY=PASSIVE OMP_NUM_THREADS=1 MLFLOW_DISABLE_TELEMETRY=true MLFLOW_DISABLE_AGENT_HINT=1
 WORKDIR /app
