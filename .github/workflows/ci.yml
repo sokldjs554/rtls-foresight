@@ -22,7 +22,7 @@ jobs:
     name: lint + typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with: { python-version: "3.11", cache: pip }
       - run: pip install ruff mypy
@@ -39,7 +39,7 @@ jobs:
       matrix:
         python: ["3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with: { python-version: "${{ matrix.python }}", cache: pip }
       - name: Install (CPU torch — CUDA 휠 2.5 GB 를 받을 이유가 없다)
@@ -80,7 +80,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - name: Login to GHCR (main 브랜치만 push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -104,7 +104,7 @@ jobs:
     name: mkdocs build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install mkdocs mkdocs-material
@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
