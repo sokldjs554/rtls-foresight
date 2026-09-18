@@ -62,7 +62,7 @@ jobs:
       - name: README 수치·표가 results 와 일치하는지
         if: matrix.python == '3.11'
         run: python tools/check_readme_numbers.py --check && python scripts/sync_tables.py --check
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && matrix.python == '3.11'
         with:
           name: smoke-results
