@@ -59,6 +59,7 @@ jobs:
           foresight export --ckpt results/smoke/ci-smoke/best.pth --out artifacts/onnx-smoke
           foresight benchmark --quick --ckpt results/smoke/ci-smoke/best.pth --onnx-dir artifacts/onnx-smoke --out results/benchmark-smoke.json
           foresight evaluate-rtls --ckpts results/smoke/ci-smoke/best.pth --names ci-smoke --data-dir data/processed/rtls --seeds 0 --k 5 --max-scenes 200 --out results/smoke/rtls_transfer.json --collision-out results/smoke/collision_eval.json --figure results/smoke/collision_pr.png
+          foresight demo --ckpt results/smoke/ci-smoke/best.pth --data-dir data/processed/rtls --out-dir results/smoke/demo --gif results/smoke/demo.gif --gif-frames 5 --seconds 20
       - name: README 수치·표가 results 와 일치하는지
         if: matrix.python == '3.11'
         run: python tools/check_readme_numbers.py --check && python scripts/sync_tables.py --check
@@ -108,3 +109,21 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install mkdocs mkdocs-material
       - run: mkdocs build --strict
+
+  pages:
+    name: GitHub Pages (docs + 브라우저 데모)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [docs]
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install mkdocs mkdocs-material
+      - name: mkdocs gh-deploy (gh-pages 브랜치; 저장소 Settings → Pages 에서 gh-pages 를 소스로)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdocs gh-deploy --force --no-history

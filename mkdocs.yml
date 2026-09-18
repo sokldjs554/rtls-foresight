@@ -20,6 +20,7 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 nav:
   - 개요: index.md
+  - 데모 (브라우저): https://sokldjs554.github.io/rtls-foresight/demo/
   - 아키텍처: architecture.md
   - 설계 문서: design.md
   - CLI 와 모듈 계약: cli.md

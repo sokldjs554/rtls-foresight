@@ -399,5 +399,82 @@ def stream(
     )
 
 
+@app.command("demo")
+def demo(
+    ckpt: str = "results/checkpoints/rtls-scratch-fast/best.pth",
+    data_dir: str = "data/rtls/full/processed",
+    out_dir: str = "demo",
+    gif: str = "results/figures/demo.gif",
+    seconds: float = 60.0,
+    zone: int | None = None,
+    d_safe: float = 1.0,
+    k: int = 20,
+    seed: int = 0,
+    gif_frames: int = 100,
+    no_gif: bool = False,
+    threads: int = 1,
+) -> None:
+    """브라우저 데모 데이터 생성: 양성이 가장 많은 구역·창을 골라 demo/replay.js·demo/model.js 를 쓰고 README 용 GIF 를 그린다."""
+    import torch
+
+    from foresight.data.ethucy import SceneSet
+    from foresight.demo.replay import (
+        build_replay,
+        export_weights,
+        load_window_frames,
+        select_window,
+        write_js,
+        zone_layout,
+    )
+    from foresight.eval.evaluate import load_model
+
+    torch.set_num_threads(threads)
+    scenes = SceneSet.load(_abs(data_dir) / "test.npz")
+    window_bins = round(seconds / 0.4)
+    win = select_window(scenes, d_safe=d_safe, window_bins=window_bins, zone=zone)
+    log.info(
+        "window: zone %d bins [%d, %d) positives %d",
+        win.zone,
+        win.bin_lo,
+        win.bin_hi,
+        win.n_positive,
+    )
+    frames = load_window_frames(_abs(data_dir) / "frames_2p5hz", win.zone, win.bin_lo, win.bin_hi)
+    model = load_model(_abs(ckpt))
+    replay = build_replay(
+        frames,
+        model,
+        win,
+        obs_len=scenes.obs_len,
+        pred_len=scenes.pred_len,
+        d_safe=d_safe,
+        k=k,
+        seed=seed,
+        layout=zone_layout(win.zone),
+        source=f"{Path(data_dir).as_posix()} (test split)",
+    )
+    out = _abs(out_dir)
+    n_r = write_js(out / "replay.js", "FORESIGHT_REPLAY", replay)
+    n_m = write_js(
+        out / "model.js", "FORESIGHT_MODEL", export_weights(model, source=Path(ckpt).as_posix())
+    )
+    log.info(
+        "wrote %s (%.1f KB, %d frames, %d agents) and %s (%.1f KB)",
+        out / "replay.js",
+        n_r / 1024,
+        replay["meta"]["n_frames"],
+        len(replay["agents"]),
+        out / "model.js",
+        n_m / 1024,
+    )
+    if not no_gif:
+        from foresight.demo.gif import render_gif
+
+        render_gif(replay, model, _abs(gif), k=k, seed=seed, d_safe=d_safe, max_frames=gif_frames)
+    typer.echo(
+        f"demo ready: {out / 'index.html'} (zone {win.zone}, {replay['meta']['n_frames']} frames)"
+    )
+
+
 if __name__ == "__main__":
     app()

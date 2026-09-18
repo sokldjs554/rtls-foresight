@@ -15,6 +15,7 @@
 | `foresight serve` | FastAPI 서버 | `--host --port --backend {torch,onnx,onnx-int8}` |
 | `foresight stream` | 스트리밍 소비자 (파일 재생 / Kafka) | `--source {replay,kafka}`, `--sink {stdout,file,kafka}`, `--bootstrap`, `--topic`, `--replay-file`, `--speed`, `--max-seconds` |
 | `foresight evaluate-rtls` | RTLS 테스트에서 궤적 지표 + 충돌 경보 품질 | `--ckpts a.pth,b.pth`, `--names`, `--data-dir`, `--every`, `--d-safe`, `--out`, `--collision-out`, `--figure` |
+| `foresight demo` | 브라우저 데모 데이터(`demo/replay.js`, `demo/model.js`)와 README GIF 생성 | `--ckpt`, `--data-dir`, `--out-dir`, `--gif`, `--seconds`, `--zone`, `--d-safe`, `--k`, `--seed`, `--gif-frames`, `--no-gif` |
 
 ## 데이터 포맷
 - **SceneSet npz** (`foresight.data.ethucy.SceneSet`): `pos (A, 20, 2)` float64 절대좌표(m), `scene_index (S, 2)`, `files`, `starts`, `obs_len=8`, `pred_len=12`, `agent_type (A,)` int8 (0 보행자/작업자, 1 차량).

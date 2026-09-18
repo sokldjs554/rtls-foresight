@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RTLS Foresight 데모</title>
+<meta name="description" content="합성 공장 RTLS 구역 60초 재생 — Social-STGCNN 이 브라우저 안에서 4.8초 뒤 궤적 분포를 예측하고 작업자·차량 충돌 위험을 경보한다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f2f4f0; --surface: #ffffff; --surface-2: #e9ede7; --ink: #1a1f1c; --muted: #5f6862; --line: #d3d9d1;
+    --accent: #b45309; --accent-ink: #ffffff; --worker: #0f766e; --vehicle: #c2410c; --risk-lo: #94a3a0; --risk-hi: #dc2626;
+    --alert: #b91c1c; --alert-soft: #fee2e2; --ok: #15803d; --floor: #f7f8f5; --aisle: #e3e7e0; --grid: #cfd5cc; --truth: #7c3aed;
+    --shadow: 0 1px 2px rgba(20, 28, 24, .08), 0 6px 20px rgba(20, 28, 24, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141816; --surface: #1c2220; --surface-2: #232b28; --ink: #e7ebe6; --muted: #9aa59d; --line: #2d3733;
+      --accent: #f59e0b; --accent-ink: #1a1f1c; --worker: #2dd4bf; --vehicle: #fb923c; --risk-lo: #4b5753; --risk-hi: #fb7185;
+      --alert: #f87171; --alert-soft: #3b1d1d; --ok: #4ade80; --floor: #181d1b; --aisle: #202826; --grid: #2f3a35; --truth: #c4b5fd;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141816; --surface: #1c2220; --surface-2: #232b28; --ink: #e7ebe6; --muted: #9aa59d; --line: #2d3733;
+    --accent: #f59e0b; --accent-ink: #1a1f1c; --worker: #2dd4bf; --vehicle: #fb923c; --risk-lo: #4b5753; --risk-hi: #fb7185;
+    --alert: #f87171; --alert-soft: #3b1d1d; --ok: #4ade80; --floor: #181d1b; --aisle: #202826; --grid: #2f3a35; --truth: #c4b5fd;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+    font-size: 14px; line-height: 1.5; padding-inline: 16px; padding-block: 18px 40px;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 16px; }
+  header { display: grid; gap: 6px; }
+  header h1 { margin: 0; font-size: clamp(20px, 2.4vw, 26px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+  header p { margin: 0; color: var(--muted); max-width: 72ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; color: var(--muted); }
+  .chip b { color: var(--ink); font-weight: 500; }
+  .chip.ok { border-color: color-mix(in srgb, var(--ok) 50%, var(--line)); }
+  .chip.warn { border-color: color-mix(in srgb, var(--alert) 50%, var(--line)); }
+  main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+  .stage { padding: 12px; display: grid; gap: 10px; }
+  .stage-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .sw.v { border-radius: 3px; }
+  canvas#floor { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--floor); border: 1px solid var(--line); touch-action: none; }
+  .transport { display: grid; grid-template-columns: auto auto 1fr auto; gap: 10px; align-items: center; }
+  @media (max-width: 520px) { .transport { grid-template-columns: auto auto 1fr; } .transport .time { grid-column: 1 / -1; } }
+  button { font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 500; min-width: 84px; }
+  select, input[type="number"] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .time { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .side { display: grid; gap: 16px; }
+  .panel { padding: 12px 14px; display: grid; gap: 10px; }
+  .panel h2 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+  .controls label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  .controls label > .val { color: var(--ink); font-weight: 500; }
+  .toggles { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; }
+  .toggles label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: var(--surface-2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; }
+  .stat .k { font-size: 11px; color: var(--muted); letter-spacing: .02em; }
+  .stat .v { font-size: 20px; font-weight: 500; line-height: 1.1; }
+  .stat .v small { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 3px; }
+  .stat.alert .v { color: var(--alert); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; }
+  th:first-child, td:first-child { text-align: left; }
+  td.bar { width: 34%; }
+  .barbg { position: relative; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .barfg { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
+  .tbl-wrap { overflow-x: auto; }
+  .log { display: grid; gap: 4px; max-height: 240px; overflow-y: auto; font-size: 12px; }
+  .log .row { display: grid; grid-template-columns: 52px 1fr auto; gap: 8px; padding: 5px 8px; border-radius: 6px; background: var(--alert-soft); }
+  .log .row .who { font-weight: 500; }
+  .log .empty { color: var(--muted); padding: 6px 0; }
+  .note { color: var(--muted); font-size: 12px; margin: 0; }
+  .note code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
+  footer { display: grid; gap: 8px; color: var(--muted); font-size: 12px; max-width: 100ch; }
+  footer p { margin: 0; }
+  footer a { color: var(--ink); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>RTLS Foresight — 작업자·차량 충돌 사전 경보 데모</h1>
+    <p>합성 공장의 한 구역(20 m × 20 m)을 60초 동안 재생합니다. 브라우저 안의 순수 JavaScript 가 Social-STGCNN(7,563 파라미터)을 그대로 실행해 3.2초의 움직임으로 4.8초 뒤 궤적 <b>분포</b>를 예측하고, 같은 미래(joint sample) 안에서 작업자–차량 최소 거리를 세어 위험 확률을 만든 뒤 경보 정책(연속 프레임 + 쿨다운)을 적용합니다.</p>
+    <div class="chips" id="chips">
+      <span class="chip">모델 <b id="chip-model">…</b></span>
+      <span class="chip">구역 <b id="chip-zone">…</b></span>
+      <span class="chip">태그 <b id="chip-agents">…</b></span>
+      <span class="chip" id="chip-check" title="JS 는 float64, PyTorch 는 float32 로 계산하므로 1e-4 수준의 차이는 연산 정밀도 차이입니다">PyTorch 대비 검증 <b>계산 중…</b></span>
+      <span class="chip" id="chip-speed">브라우저 추론 <b>…</b></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card stage" aria-label="구역 지도">
+      <div class="stage-top">
+        <div class="legend">
+          <span><i class="sw" style="background: var(--worker)"></i>작업자</span>
+          <span><i class="sw v" style="background: var(--vehicle)"></i>차량(지게차)</span>
+          <span><i class="sw" style="background: var(--risk-hi)"></i>위험 링크(굵을수록 높음)</span>
+          <span><i class="sw" style="background: var(--truth)"></i>실제 미래(토글)</span>
+        </div>
+        <div class="time mono" id="clock">t = 0.0 s</div>
+      </div>
+      <canvas id="floor" width="880" height="880" role="img" aria-label="구역 평면도: 작업자와 차량의 현재 위치, 예측 분포, 위험 링크"></canvas>
+      <div class="transport">
+        <button class="primary" id="btn-play" aria-label="재생">▶ 재생</button>
+        <select id="sel-speed" aria-label="재생 속도"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+        <input type="range" id="rng-frame" min="0" max="0" value="0" step="1" aria-label="프레임">
+        <span class="time mono" id="frame-label">0 / 0</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card panel" aria-label="지표">
+        <h2>지금까지</h2>
+        <div class="stats">
+          <div class="stat alert"><span class="k">모델 경보</span><span class="v mono" id="st-alerts">0<small id="st-supp"></small></span></div>
+          <div class="stat"><span class="k">지오펜스 r 진입</span><span class="v mono" id="st-geo">0</span></div>
+          <div class="stat"><span class="k">실제 d_safe 진입</span><span class="v mono" id="st-truth">0</span></div>
+        </div>
+        <p class="note">모델 경보 = 위험 확률이 임계 이상으로 연속 N 프레임 지속(쿨다운 안이면 억제, 괄호). 지오펜스 = "현재 거리 &lt; r" 규칙이 새로 울린 횟수. 실제 = 두 태그가 d_safe 안으로 실제로 들어간 횟수(정답).</p>
+      </section>
+
+      <section class="card panel" aria-label="설정">
+        <h2>설정</h2>
+        <div class="controls">
+          <label>안전 거리 d_safe <span class="val mono" id="v-dsafe">1.0 m</span>
+            <input type="range" id="in-dsafe" min="0.5" max="3" step="0.5" value="1.0"></label>
+          <label>샘플 수 K <span class="val mono" id="v-k">20</span>
+            <input type="range" id="in-k" min="0" max="50" step="5" value="20"></label>
+          <label>경보 임계 <span class="val mono" id="v-thr">0.30</span>
+            <input type="range" id="in-thr" min="0.05" max="0.95" step="0.05" value="0.3"></label>
+          <label>연속 프레임 N <span class="val mono" id="v-cons">2</span>
+            <input type="range" id="in-cons" min="1" max="5" step="1" value="2"></label>
+          <label>쿨다운 <span class="val mono" id="v-cool">5 s</span>
+            <input type="range" id="in-cool" min="0" max="15" step="1" value="5"></label>
+          <label>지오펜스 반경 r <span class="val mono" id="v-r">1.5 m</span>
+            <input type="range" id="in-r" min="0.5" max="4" step="0.5" value="1.5"></label>
+          <label>샘플 시드 <span class="val mono" id="v-seed">0</span>
+            <input type="range" id="in-seed" min="0" max="20" step="1" value="0"></label>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="tg-samples" checked> 샘플 궤적</label>
+          <label><input type="checkbox" id="tg-mean" checked> 평균 궤적</label>
+          <label><input type="checkbox" id="tg-trails" checked> 관측 이력</label>
+          <label><input type="checkbox" id="tg-links" checked> 위험 링크</label>
+          <label><input type="checkbox" id="tg-geo"> 지오펜스 원</label>
+          <label><input type="checkbox" id="tg-truth"> 실제 미래</label>
+        </div>
+      </section>
+
+      <section class="card panel" aria-label="위험 상위 쌍">
+        <h2>이 프레임의 위험 상위 쌍</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>작업자 → 차량</th><th class="bar">위험 확률</th><th>위험 · ttc</th><th>현재 거리</th><th>연속</th></tr></thead>
+          <tbody id="risk-body"></tbody>
+        </table></div>
+      </section>
+
+      <section class="card panel" aria-label="경보 로그">
+        <h2>경보 로그</h2>
+        <div class="log" id="alert-log"><div class="empty">아직 경보가 없습니다.</div></div>
+      </section>
+    </aside>
+  </main>
+
+  <footer>
+    <p id="verify-line">검증: 계산 중…</p>
+    <p>데이터는 <b>합성</b> RTLS 스트림(UWB 노이즈 σ 0.15 m, 10 Hz → 2.5 Hz)의 테스트 구간이며, 실제 사람·현장 데이터가 아닙니다. 모델은 RTLS 장면으로 처음부터 학습한 체크포인트입니다. 위험 확률의 정의, 경보 정책, 평가 결과(d_safe 1 m 에서는 지오펜스가 더 낫고 2 m 에서는 예측 분포가 더 낫다)는 저장소 README §4.5 와 <code>docs/serving_streaming.md</code> 에 있습니다.</p>
+    <p>소스: <a href="https://github.com/sokldjs554/rtls-foresight">github.com/sokldjs554/rtls-foresight</a> · 이 페이지는 <code>foresight demo</code> 명령이 만든 <code>demo/replay.js</code>(재생 데이터)와 <code>demo/model.js</code>(가중치)를 <code>demo/foresight.js</code>(추론·위험·경보 구현)로 재생합니다.</p>
+  </footer>
+</div>
+
+<script src="foresight.js"></script>
+<script src="model.js"></script>
+<script src="replay.js"></script>
+<script>
+(function () {
+  "use strict";
+  const R = window.FORESIGHT_REPLAY, MODEL = window.FORESIGHT_MODEL, F = window.Foresight;
+  if (!R || !MODEL || !F) { document.getElementById("verify-line").textContent = "replay.js / model.js / foresight.js 를 찾지 못했습니다. 세 파일이 같은 폴더에 있어야 합니다."; return; }
+  const $ = (id) => document.getElementById(id);
+  const DT = R.meta.step_s, OBS = R.meta.obs_len, PRED = R.meta.pred_len, NF = R.frames.length;
+  const agents = R.agents, types = agents.map((a) => a.type);
+  const L = R.meta.layout || { x0: 0, y0: 0, size: 20, aisle_m: 10 };
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const S = { f: 0, playing: false, speed: 1, dSafe: 1.0, K: 20, seed: 0, thr: 0.3, minCons: 2, cooldown: 5, r: 1.5,
+    show: { samples: true, mean: true, trails: true, links: true, geo: false, truth: false } };
+
+  // ---- 프레임 인덱스: 프레임 f 의 에이전트 위치 맵
+  const posAt = R.frames.map((fr) => { const m = new Map(); for (const a of fr.a) m.set(a[0], [a[1], a[2]]); return m; });
+  function historyOf(idx, f) { // f 를 끝으로 하는 OBS 개 연속 위치 (없으면 null)
+    const out = [];
+    for (let t = f - OBS + 1; t <= f; t++) { if (t < 0) return null; const p = posAt[t].get(idx); if (!p) return null; out.push(p); }
+    return out;
+  }
+
+  // ---- 전체 재계산 (설정이 바뀌면): 프레임마다 예측·샘플·위험, 경보 정책은 순서대로
+  let frames = [], totals = null, verify = null;
+  function recompute() {
+    const t0 = performance.now();
+    const pol = new F.AlertPolicy({ threshold: S.thr, cooldownS: S.cooldown, minConsecutive: S.minCons });
+    const geoState = new Map(), truthState = new Map();
+    let nGeo = 0, nTruth = 0, maxDiff = 0, nCmp = 0, detOk = 0, detTotal = 0;
+    const checkByFrame = new Map((R.check || []).map((c) => [c.f, c]));
+    frames = [];
+    for (let f = 0; f < NF; f++) {
+      const pre = R.pred[f];
+      const res = { f: f, ids: [], obs: [], mean: [], samples: null, pairs: [], alerts: [], closePairs: [] };
+      if (pre && pre.ids.length) {
+        const ids = pre.ids, obs = ids.map((i) => historyOf(i, f)).filter((h) => h);
+        if (obs.length === ids.length) {
+          const p = F.predict(MODEL, obs, S.K, (S.seed * 100003 + f) >>> 0);
+          res.ids = ids; res.obs = obs; res.params = p.params; res.mean = p.mean; res.samples = p.samples;
+          // PyTorch 가 저장한 params 와 비교 (같은 입력 → 같은 출력이어야 한다)
+          for (let n = 0; n < ids.length; n++) for (let t = 0; t < PRED; t++) for (let c = 0; c < 5; c++) {
+            const d = Math.abs(p.params[t][n][c] - pre.params[n][t][c]); if (d > maxDiff) maxDiff = d; nCmp++; }
+          const ty = ids.map((i) => types[i]);
+          const rm = S.K > 0 ? F.pairwiseRisk(p.samples, ty, S.dSafe, DT) : F.pairwiseRisk([p.mean], ty, S.dSafe, DT);
+          const obsList = [];
+          rm.workers.forEach((w, wi) => rm.vehicles.forEach((v, vi) => {
+            const iw = ids[w], iv = ids[v], pw = posAt[f].get(iw), pv = posAt[f].get(iv);
+            const dist = Math.hypot(pw[0] - pv[0], pw[1] - pv[1]);
+            const pr = { w: iw, v: iv, wid: agents[iw].id, vid: agents[iw] && agents[iv].id, risk: rm.risk[wi][vi], ttc: rm.ttc[wi][vi], minDist: rm.minDist[wi][vi], dist: dist };
+            res.pairs.push(pr); obsList.push(pr);
+          }));
+          res.alerts = pol.update(obsList, f * DT);
+          for (const a of res.alerts) { const st = pol.state.get(a.wid + "|" + a.vid); a.consecutive = st ? st.consecutive : 0; }
+          const chk = checkByFrame.get(f);
+          if (chk) { // 결정적 위험(평균 궤적)이 파이썬과 같은지
+            const rd = F.pairwiseRisk([p.mean], ty, R.meta.d_safe, DT);
+            const pyDet = new Map(chk.risk_det.map((r) => [r[0] + "|" + r[1], r[2]]));
+            rd.workers.forEach((w, wi) => rd.vehicles.forEach((v, vi) => { const k = ids[w] + "|" + ids[v]; if (pyDet.has(k)) { detTotal++; if (Math.abs(pyDet.get(k) - rd.risk[wi][vi]) < 1e-6) detOk++; } }));
+          }
+        }
+      }
+      // 지오펜스·실제 진입 이벤트 (모든 작업자×차량 쌍, 현재 위치 기준)
+      const cur = posAt[f];
+      for (const [iw, pw] of cur) { if (types[iw] !== 0) continue;
+        for (const [iv, pv] of cur) { if (types[iv] !== 1) continue;
+          const d = Math.hypot(pw[0] - pv[0], pw[1] - pv[1]), key = iw + "|" + iv;
+          const gWas = geoState.get(key) || false, gNow = d < S.r; if (gNow && !gWas) nGeo++; geoState.set(key, gNow);
+          const tWas = truthState.get(key) || false, tNow = d < S.dSafe; if (tNow && !tWas) { nTruth++; res.closePairs.push([iw, iv]); } truthState.set(key, tNow);
+        } }
+      res.nAlerts = pol.nAlerts; res.nSupp = pol.nSuppressed; res.nGeo = nGeo; res.nTruth = nTruth;
+      frames.push(res);
+    }
+    verify = { maxDiff: maxDiff, nCmp: nCmp, detOk: detOk, detTotal: detTotal, ms: performance.now() - t0 };
+    renderVerify();
+  }
+
+  // ---- 그리기
+  const cv = $("floor"), ctx = cv.getContext("2d");
+  let alertFlash = new Map(); // key → 프레임
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function riskColor(r) { // risk-lo → risk-hi
+    const a = hex(css("--risk-lo")), b = hex(css("--risk-hi")), t = Math.max(0, Math.min(1, r));
+    return `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)}, ${Math.round(a[1] + (b[1] - a[1]) * t)}, ${Math.round(a[2] + (b[2] - a[2]) * t)})`;
+  }
+  function hex(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map((c) => c + c).join(""); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; }
+  function draw(f) {
+    const W = cv.width, H = cv.height, pad = 30, sz = Math.min(W, H) - 2 * pad, sc = sz / L.size, ox = (W - sz) / 2, oy = (H - sz) / 2;
+    const X = (x) => ox + (x - L.x0) * sc, Y = (y) => H - oy - (y - L.y0) * sc; // y 위쪽이 +
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = css("--floor"); ctx.fillRect(0, 0, W, H);
+    // 통로(aisle_m 간격, 셀 중심선) + 격자
+    ctx.fillStyle = css("--aisle");
+    const half = L.aisle_m / 2, aw = 2.4 * sc;
+    for (let a = half; a < L.size; a += L.aisle_m) { ctx.fillRect(X(L.x0 + a) - aw / 2, Y(L.y0 + L.size), aw, sz); ctx.fillRect(X(L.x0), Y(L.y0 + a) - aw / 2, sz, aw); }
+    ctx.strokeStyle = css("--grid"); ctx.lineWidth = 1;
+    for (let g = 0; g <= L.size; g += 5) { ctx.beginPath(); ctx.moveTo(X(L.x0 + g), Y(L.y0)); ctx.lineTo(X(L.x0 + g), Y(L.y0 + L.size)); ctx.stroke(); ctx.beginPath(); ctx.moveTo(X(L.x0), Y(L.y0 + g)); ctx.lineTo(X(L.x0 + L.size), Y(L.y0 + g)); ctx.stroke(); }
+    ctx.strokeStyle = css("--line"); ctx.lineWidth = 2; ctx.strokeRect(X(L.x0), Y(L.y0 + L.size), sz, sz);
+    ctx.fillStyle = css("--muted"); ctx.font = "11px IBM Plex Mono, monospace"; ctx.textAlign = "left";
+    ctx.fillText(`zone ${R.meta.zone} · ${L.size} m × ${L.size} m · 5 m 격자`, X(L.x0), Y(L.y0) + 18);
+    const fr = frames[f] || { ids: [], pairs: [], alerts: [], closePairs: [] };
+    const cur = posAt[f];
+    // 지오펜스 원 (차량 주변 r)
+    if (S.show.geo) { ctx.strokeStyle = css("--vehicle"); ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.globalAlpha = 0.6;
+      for (const [i, p] of cur) if (types[i] === 1) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), S.r * sc, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.setLineDash([]); ctx.globalAlpha = 1; }
+    // 샘플 궤적
+    if (S.show.samples && fr.samples) { ctx.lineWidth = 1; ctx.globalAlpha = Math.max(0.05, 0.35 / Math.sqrt(S.K));
+      fr.samples.forEach((per) => per.forEach((tr, n) => { const i = fr.ids[n]; ctx.strokeStyle = css(types[i] === 0 ? "--worker" : "--vehicle"); const p0 = cur.get(i); ctx.beginPath(); ctx.moveTo(X(p0[0]), Y(p0[1])); for (const q of tr) ctx.lineTo(X(q[0]), Y(q[1])); ctx.stroke(); }));
+      ctx.globalAlpha = 1; }
+    // 관측 이력
+    if (S.show.trails) { ctx.lineWidth = 1.5; ctx.globalAlpha = 0.55;
+      for (const [i, p] of cur) { ctx.strokeStyle = css(types[i] === 0 ? "--worker" : "--vehicle"); ctx.beginPath(); let started = false;
+        for (let t = Math.max(0, f - OBS + 1); t <= f; t++) { const q = posAt[t].get(i); if (!q) { started = false; continue; } if (!started) { ctx.moveTo(X(q[0]), Y(q[1])); started = true; } else ctx.lineTo(X(q[0]), Y(q[1])); }
+        ctx.stroke(); }
+      ctx.globalAlpha = 1; }
+    // 실제 미래 (정답)
+    if (S.show.truth) { ctx.strokeStyle = css("--truth"); ctx.setLineDash([3, 3]); ctx.lineWidth = 1.5;
+      for (const [i, p] of cur) { ctx.beginPath(); ctx.moveTo(X(p[0]), Y(p[1])); for (let t = f + 1; t <= Math.min(NF - 1, f + PRED); t++) { const q = posAt[t].get(i); if (!q) break; ctx.lineTo(X(q[0]), Y(q[1])); } ctx.stroke(); }
+      ctx.setLineDash([]); }
+    // 평균 궤적
+    if (S.show.mean && fr.mean.length) { ctx.lineWidth = 2;
+      fr.mean.forEach((tr, n) => { const i = fr.ids[n]; ctx.strokeStyle = css(types[i] === 0 ? "--worker" : "--vehicle"); const p0 = cur.get(i); ctx.beginPath(); ctx.moveTo(X(p0[0]), Y(p0[1])); for (const q of tr) ctx.lineTo(X(q[0]), Y(q[1])); ctx.stroke();
+        const e = tr[tr.length - 1]; ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(X(e[0]), Y(e[1]), 2.5, 0, Math.PI * 2); ctx.fill(); }); }
+    // 위험 링크
+    if (S.show.links) { for (const pr of fr.pairs) { if (pr.risk < 0.1) continue; const pw = cur.get(pr.w), pv = cur.get(pr.v);
+        ctx.strokeStyle = riskColor(pr.risk); ctx.lineWidth = 1 + 5 * pr.risk; ctx.globalAlpha = 0.35 + 0.6 * pr.risk; ctx.beginPath(); ctx.moveTo(X(pw[0]), Y(pw[1])); ctx.lineTo(X(pv[0]), Y(pv[1])); ctx.stroke(); }
+      ctx.globalAlpha = 1; }
+    // 실제 d_safe 진입 표시
+    ctx.strokeStyle = css("--truth"); ctx.lineWidth = 2;
+    for (const [iw, iv] of fr.closePairs) { const pw = cur.get(iw), pv = cur.get(iv); ctx.beginPath(); ctx.arc((X(pw[0]) + X(pv[0])) / 2, (Y(pw[1]) + Y(pv[1])) / 2, S.dSafe * sc, 0, Math.PI * 2); ctx.stroke(); }
+    // 에이전트
+    for (const [i, p] of cur) { const isW = types[i] === 0; ctx.fillStyle = css(isW ? "--worker" : "--vehicle"); ctx.strokeStyle = css("--surface");
+      ctx.lineWidth = 1.5; if (isW) { ctx.beginPath(); ctx.arc(X(p[0]), Y(p[1]), 0.32 * sc, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      else { const s = 0.6 * sc; ctx.beginPath(); ctx.roundRect(X(p[0]) - s / 2, Y(p[1]) - s / 2, s, s, 3); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = css("--ink"); ctx.font = "10px IBM Plex Mono, monospace"; ctx.textAlign = "center"; ctx.fillText(agents[i].id, X(p[0]), Y(p[1]) - 0.45 * sc - 2); }
+    // 경보 링 (최근 4 프레임)
+    for (const a of fr.alerts) alertFlash.set(a.wid + "|" + a.vid, f);
+    ctx.strokeStyle = css("--alert"); ctx.lineWidth = 3;
+    for (const [key, f0] of alertFlash) { if (f - f0 > 4 || f < f0) { alertFlash.delete(key); continue; } const [wid, vid] = key.split("|");
+      const iw = agents.findIndex((a) => a.id === wid), iv = agents.findIndex((a) => a.id === vid); const pw = cur.get(iw), pv = cur.get(iv); if (!pw || !pv) continue;
+      ctx.globalAlpha = 1 - (f - f0) / 5; ctx.beginPath(); ctx.arc(X(pw[0]), Y(pw[1]), (0.6 + 0.15 * (f - f0)) * sc, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(X(pv[0]), Y(pv[1]), (0.7 + 0.15 * (f - f0)) * sc, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- 패널
+  function fmt(x, d) { return Number.isFinite(x) ? x.toFixed(d) : "–"; }
+  function renderPanels(f) {
+    const fr = frames[f];
+    $("clock").textContent = `t = ${(f * DT).toFixed(1)} s`;
+    $("frame-label").textContent = `${f + 1} / ${NF}`;
+    $("st-alerts").firstChild.textContent = fr ? fr.nAlerts : 0;
+    $("st-supp").textContent = fr && fr.nSupp ? `(+${fr.nSupp} 억제)` : "";
+    $("st-geo").textContent = fr ? fr.nGeo : 0; $("st-truth").textContent = fr ? fr.nTruth : 0;
+    const top = (fr ? fr.pairs.slice() : []).sort((a, b) => b.risk - a.risk).slice(0, 8);
+    const body = $("risk-body"); body.innerHTML = "";
+    if (!top.length) { body.innerHTML = `<tr><td colspan="5" style="text-align:left;color:var(--muted)">예측 가능한 쌍이 없습니다(8 프레임 이력 필요).</td></tr>`; }
+    for (const pr of top) { const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="mono">${pr.wid} → ${pr.vid}</td><td class="bar"><div class="barbg"><div class="barfg" style="width:${Math.round(pr.risk * 100)}%;background:${riskColor(pr.risk)}"></div></div></td><td class="mono">${fmt(pr.risk, 2)} · ${fmt(pr.ttc, 1)} s</td><td class="mono">${fmt(pr.dist, 2)} m</td><td class="mono">${consOf(pr, f)}</td>`;
+      body.appendChild(tr); }
+    const log = $("alert-log"); log.innerHTML = "";
+    const all = []; for (let i = 0; i <= f; i++) for (const a of frames[i].alerts) all.push(a);
+    if (!all.length) log.innerHTML = `<div class="empty">아직 경보가 없습니다. 임계를 낮추거나 재생을 계속해 보세요.</div>`;
+    for (const a of all.slice(-30).reverse()) { const row = document.createElement("div"); row.className = "row";
+      row.innerHTML = `<span class="mono">${a.tsS.toFixed(1)} s</span><span class="who">${a.wid} ↔ ${a.vid}</span><span class="mono">risk ${a.risk.toFixed(2)} · ttc ${fmt(a.ttc, 1)} s</span>`; log.appendChild(row); }
+  }
+  function consOf(pr, f) { // 연속 초과 프레임 수(표시용): 이전 프레임들로 거슬러 센다
+    let n = 0; for (let i = f; i >= 0; i--) { const q = frames[i].pairs.find((x) => x.w === pr.w && x.v === pr.v); if (!q || q.risk < S.thr) break; n++; } return n;
+  }
+  function renderVerify() {
+    const v = verify; if (!v) return;
+    const ok = v.maxDiff < 1e-3;
+    $("chip-check").className = "chip " + (ok ? "ok" : "warn");
+    $("chip-check").innerHTML = `PyTorch 대비 검증 <b>|Δparams| ≤ ${v.maxDiff.toExponential(1)}</b>`;
+    $("chip-speed").innerHTML = `브라우저 추론 <b>${(v.ms / Math.max(1, R.meta.n_pred_frames)).toFixed(1)} ms/프레임</b>`;
+    $("verify-line").textContent = `검증: 이 페이지의 JS 순전파와 PyTorch 가 저장한 파라미터의 최대 차이 ${v.maxDiff.toExponential(2)} (${v.nCmp.toLocaleString()}개 값, ${R.meta.n_pred_frames} 프레임) · 결정적 위험 일치 ${v.detOk}/${v.detTotal} 쌍 · 전체 ${NF} 프레임 재계산 ${v.ms.toFixed(0)} ms (샘플 K=${S.K}).`;
+  }
+
+  // ---- 재생 루프
+  let last = 0, acc = 0;
+  function tick(now) { if (!S.playing) return; const dt = (now - last) / 1000; last = now; acc += dt * S.speed;
+    while (acc >= DT) { acc -= DT; S.f = (S.f + 1) % NF; if (S.f === 0) alertFlash.clear(); }
+    show(S.f); requestAnimationFrame(tick); }
+  function show(f) { S.f = f; $("rng-frame").value = f; draw(f); renderPanels(f); }
+  function setPlaying(p) { S.playing = p; $("btn-play").textContent = p ? "❚❚ 일시정지" : "▶ 재생"; $("btn-play").setAttribute("aria-label", p ? "일시정지" : "재생"); if (p) { last = performance.now(); acc = 0; requestAnimationFrame(tick); } }
+
+  // ---- 입력 바인딩
+  $("btn-play").addEventListener("click", () => setPlaying(!S.playing));
+  $("sel-speed").addEventListener("change", (e) => { S.speed = parseFloat(e.target.value); });
+  $("rng-frame").max = NF - 1;
+  $("rng-frame").addEventListener("input", (e) => { setPlaying(false); alertFlash.clear(); show(parseInt(e.target.value, 10)); });
+  let timer = null;
+  function bindRange(id, key, fmtFn, valId) { $(id).addEventListener("input", (e) => { S[key] = parseFloat(e.target.value); $(valId).textContent = fmtFn(S[key]); clearTimeout(timer); timer = setTimeout(() => { recompute(); alertFlash.clear(); show(S.f); }, 120); }); }
+  bindRange("in-dsafe", "dSafe", (v) => v.toFixed(1) + " m", "v-dsafe");
+  bindRange("in-k", "K", (v) => (v === 0 ? "0 (결정적 μ)" : String(v)), "v-k");
+  bindRange("in-thr", "thr", (v) => v.toFixed(2), "v-thr");
+  bindRange("in-cons", "minCons", (v) => String(v), "v-cons");
+  bindRange("in-cool", "cooldown", (v) => v + " s", "v-cool");
+  bindRange("in-r", "r", (v) => v.toFixed(1) + " m", "v-r");
+  bindRange("in-seed", "seed", (v) => String(v), "v-seed");
+  for (const [id, key] of [["tg-samples", "samples"], ["tg-mean", "mean"], ["tg-trails", "trails"], ["tg-links", "links"], ["tg-geo", "geo"], ["tg-truth", "truth"]]) $(id).addEventListener("change", (e) => { S.show[key] = e.target.checked; draw(S.f); });
+  if (window.matchMedia) { const mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", () => draw(S.f)); }
+  new MutationObserver(() => draw(S.f)).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  // ---- 시작
+  $("chip-model").textContent = `${MODEL.meta.param_count.toLocaleString()} 파라미터 · ${(MODEL.meta.source || "checkpoint").split("/").slice(-2, -1)[0] || "checkpoint"}`;
+  $("chip-zone").textContent = `${R.meta.zone} (${(NF * DT).toFixed(0)} s, ${NF} 프레임)`;
+  $("chip-agents").textContent = `${agents.length} (작업자 ${types.filter((t) => t === 0).length} · 차량 ${types.filter((t) => t === 1).length})`;
+  recompute();
+  // 첫 화면: 위험이 가장 높은 프레임을 보여 준다(정지 상태에서도 내용이 보이도록); 재생은 그 자리부터
+  let f0 = 0, best = -1; frames.forEach((fr, i) => { const m = fr.pairs.reduce((s, p) => Math.max(s, p.risk), 0); if (m > best) { best = m; f0 = i; } });
+  show(f0);
+  if (!reduced) setPlaying(true);
+})();
+</script>
+</body>
+</html>

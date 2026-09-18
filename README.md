@@ -7,7 +7,25 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 
 > 데이터는 공개 보행자 궤적(ETH/UCY)과 **합성** RTLS 스트림입니다. 실제 현장·고객 데이터는 사용하지 않았습니다.
 
-`1. 문제` · `2. 왜 이 주제인가` · `3. 무엇이 다른가` · `4. 결과` · `5. 아키텍처` · `6. 실행` · `7. 실험 기록` · `8. 배운 것` · `9. 한계`
+`데모` · `1. 문제` · `2. 왜 이 주제인가` · `3. 무엇이 다른가` · `4. 결과` · `5. 아키텍처` · `6. 실행` · `7. 실험 기록` · `8. 배운 것` · `9. 한계`
+
+---
+
+## 데모
+
+![데모 — 합성 공장 구역 재생: 청록 작업자, 주황 차량, 연한 선 20 샘플, 빨간 링크 위험, 링 경보](results/figures/demo.gif)
+
+**브라우저에서 직접 실행되는 데모** → [sokldjs554.github.io/rtls-foresight/demo](https://sokldjs554.github.io/rtls-foresight/demo/) (GitHub Pages).
+저장소를 받아 `demo/index.html` 을 열어도 같은 페이지가 뜹니다 — 서버·설치가 필요 없습니다.
+
+- 합성 공장 한 구역(20 m × 20 m)의 테스트 스트림 60초. 순수 JavaScript 로 포팅한 Social-STGCNN([`demo/foresight.js`](demo/foresight.js))이
+  8 프레임 이력 → 4.8초 뒤 궤적 분포 → 같은 미래(joint sample) 안의 작업자–차량 최소 거리 → 위험 확률 → 경보 정책(연속 N 프레임 + 쿨다운)을
+  브라우저 안에서 계산합니다 (프레임당 수 ms).
+- d_safe·샘플 수·임계·쿨다운·지오펜스 반경을 바꾸면 전체 169 프레임을 즉시 재계산하고, 모델 경보 수를 "지오펜스 r 진입"·"실제 d_safe 진입(정답)"
+  과 나란히 셉니다 — §4.5 의 결론(안전 거리가 작으면 지오펜스, 크면 예측 분포)을 눈으로 확인하는 용도입니다.
+- JS 구현은 PyTorch 와 수치로 비교합니다([`tests/test_demo_js.py`](tests/test_demo_js.py), Node): 파라미터 최대 차이 ~1e-4(float32 vs float64 연산 차이),
+  위험 행렬·경보 결정은 동일. 페이지 상단 칩에 그 값이 표시됩니다.
+- 재생성: `foresight demo` — 양성이 가장 많은 구역·창을 골라 `demo/replay.js`, `demo/model.js`, `results/figures/demo.gif` 를 만듭니다.
 
 ---
 
