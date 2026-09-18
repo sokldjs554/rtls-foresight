@@ -10,3 +10,7 @@ updates:
   - package-ecosystem: docker
     directory: "/"
     schedule: { interval: weekly }
+    ignore:
+      # 기본 이미지의 파이썬 메이저·마이너 승급은 torch 휠 지원을 확인한 뒤 수동으로
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]

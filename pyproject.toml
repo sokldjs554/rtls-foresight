@@ -95,6 +95,7 @@ files = ["src/foresight"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q -ra"
+pythonpath = ["."]  # tests 가 tools/·scripts/ 를 import 한다 (bare `pytest` 에서도)
 markers = [
     "slow: 수 분 이상 걸리는 테스트 (CI 기본 제외)",
     "docker: Docker 데몬이 필요한 테스트",

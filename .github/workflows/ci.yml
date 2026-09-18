@@ -22,8 +22,8 @@ jobs:
     name: lint + typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11", cache: pip }
       - run: pip install ruff mypy
       - run: ruff check src tests scripts tools
@@ -39,8 +39,8 @@ jobs:
       matrix:
         python: ["3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "${{ matrix.python }}", cache: pip }
       - name: Install (CPU torch — CUDA 휠 2.5 GB 를 받을 이유가 없다)
         run: |
@@ -63,7 +63,7 @@ jobs:
       - name: README 수치·표가 results 와 일치하는지
         if: matrix.python == '3.11'
         run: python tools/check_readme_numbers.py --check && python scripts/sync_tables.py --check
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && matrix.python == '3.11'
         with:
           name: smoke-results
@@ -80,16 +80,16 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - name: Login to GHCR (main 브랜치만 push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           target: serve
@@ -104,8 +104,8 @@ jobs:
     name: mkdocs build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11" }
       - run: pip install mkdocs mkdocs-material
       - run: mkdocs build --strict
@@ -117,9 +117,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.11" }
       - run: pip install mkdocs mkdocs-material
       - name: mkdocs gh-deploy (gh-pages 브랜치; 저장소 Settings → Pages 에서 gh-pages 를 소스로)
