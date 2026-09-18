@@ -12,7 +12,7 @@
 ## 결정
 기본값은 공식 코드 동작(`graph.kernel=velocity`, `time_channel_swap=view`, `best_of_k_per_agent`)으로 두고,
 논문 서술대로의 동작을 옵션으로 제공해 ablation 으로 차이를 측정한다. 공식 체크포인트를 이 구현에 로드해
-출력이 비트 단위로 같음을 테스트로 고정한다(`tests/test_model.py`).
+출력이 같음을 테스트로 고정한다(`tests/test_model.py`; 같은 기계에서는 비트 단위, 기계 간에는 float32 커널 차이 1e-6 허용).
 
 ## 결과
 "재현했다"는 말이 무엇을 재현했는지 분명해진다. 커널·축 교환 ablation 은 `docs/paper_reproduction.md` 에 기록한다.

@@ -1,4 +1,4 @@
-"""모델: 파라미터 수 7,563, 공식 체크포인트 로드, 골든 출력 비트 일치, 배치 경로 동일성, permute 모드 차이."""
+"""모델: 파라미터 수 7,563, 공식 체크포인트 로드, 골든 출력 일치(기계 간 1e-6), 배치 경로 동일성, permute 모드 차이."""
 
 from __future__ import annotations
 
@@ -22,16 +22,20 @@ def test_official_checkpoint_loads_strictly(official_eth_ckpt: Path) -> None:
     assert set(model.state_dict()) == set(official_key_map(sd))
 
 
-def test_output_matches_reference_bitwise(
-    golden: dict[str, np.ndarray], official_eth_ckpt: Path
-) -> None:
+def test_output_matches_reference(golden: dict[str, np.ndarray], official_eth_ckpt: Path) -> None:
+    """공식 체크포인트 + 골든 입력 → 골든 출력.
+
+    골든 값을 만든 기계에서는 비트 단위로 같지만, CPU 가 다르면 float32 conv/einsum 커널(SIMD 경로)이 달라
+    ~1e-6 차이가 난다(GitHub 러너에서 최대 9.5e-7 관측). 그래서 기계 간 비교는 1e-5 상대·2e-6 절대 허용오차로 둔다 —
+    구현 차이(예: permute 축 교환)는 1e-1 수준이라 이 허용오차로도 충분히 잡힌다.
+    """
     model = load_official_checkpoint(SocialSTGCNN(), str(official_eth_ckpt)).eval()
     for i in golden["scene_ids"]:
         vo, ao, _, _ = scene_to_graph(golden[f"pos_{i}"], obs_len=8)
         out = model.predict_params(
             torch.from_numpy(vo).permute(2, 0, 1).unsqueeze(0), torch.from_numpy(ao)
         )[0].numpy()
-        np.testing.assert_array_equal(out, golden[f"out_{i}"])
+        np.testing.assert_allclose(out, golden[f"out_{i}"], rtol=1e-5, atol=2e-6)
 
 
 def test_batched_adjacency_path_equals_shared(
