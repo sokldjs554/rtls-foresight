@@ -81,8 +81,9 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 <!-- REPRODUCTION_TABLE:END -->
 
 세 열을 같이 읽어야 한다. **논문**은 저자가 보고한 값, **공식 ckpt 재평가**는 저자의 가중치를 이 저장소의 평가기로 돌린 값,
-**우리 학습**은 처음부터 구현한 코드로 CPU 에서 250 epoch 학습한 값(학습 시드 0)이다. 학습 시드를 바꾸면 ETH 는 0.74 → 0.66 까지 움직여
-논문과의 차이가 시드 분산 안에 들어온다 — 시드별 표는 [`docs/paper_reproduction.md`](docs/paper_reproduction.md) §2.1.
+**우리 학습**은 처음부터 구현한 코드로 CPU 에서 250 epoch 학습한 값(학습 시드 0)이다. 학습 시드를 바꾸면 ETH 는 0.74 → 0.66 으로 좋아지고
+zara1 은 0.34 → 0.43 으로 나빠지는 등 분할별로 ±0.05 안팎이 움직인다 — 논문과의 차이는 이 시드 분산 안이며, 시드별 표는
+[`docs/paper_reproduction.md`](docs/paper_reproduction.md) §2.1.
 자세한 논의와 ablation(공식 코드의 `view` 축 교환·속도 커널·장면 단위 BN 이 모두 결과에 기여한다): 같은 문서 §3
 
 ![논문 vs 공식 체크포인트 재평가 vs 우리 학습 vs 등속 모델](results/figures/reproduction_bars.png)
