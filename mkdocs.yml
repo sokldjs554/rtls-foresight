@@ -21,6 +21,8 @@ markdown_extensions:
 nav:
   - 개요: index.md
   - 아키텍처: architecture.md
+  - 설계 문서: design.md
+  - CLI 와 모듈 계약: cli.md
   - 논문 재현: paper_reproduction.md
   - 평가 방법론: evaluation_methodology.md
   - 데이터 파이프라인: data_pipeline.md

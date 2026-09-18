@@ -7,11 +7,12 @@ export FORESIGHT_ROOT="$PWD" MLFLOW_DISABLE_TELEMETRY=true MLFLOW_DISABLE_AGENT_
 INIT="${INIT:-results/checkpoints/eth/seed0/best.pth}"; LIMIT="${LIMIT:-60000}"; EVERY="${EVERY:-10}"
 DATA="${DATA:-data/rtls/full/processed}"
 mkdir -p results/logs
+SCRATCH_EPOCHS="${SCRATCH_EPOCHS:-60}"
 echo "[$(date +%H:%M:%S)] finetune from $INIT"
-foresight train dataset=rtls dataset.data_dir="$DATA" dataset.limit_scenes=$LIMIT train=finetune train.mode=bucket train.bucket_batch=32 \
+[ -f results/checkpoints/rtls-finetune-eth/metrics.json ] || foresight train dataset=rtls dataset.data_dir="$DATA" dataset.limit_scenes=$LIMIT train=finetune train.mode=bucket train.bucket_batch=32 \
   init_from="$INIT" run_name=rtls-finetune-eth mlflow.experiment=social-stgcnn-rtls threads=1 eval.seeds=[0] > results/logs/rtls-finetune.log 2>&1
-echo "[$(date +%H:%M:%S)] scratch (fast)"
-foresight train dataset=rtls dataset.data_dir="$DATA" dataset.limit_scenes=$LIMIT train=fast run_name=rtls-scratch-fast \
+echo "[$(date +%H:%M:%S)] scratch (fast, $SCRATCH_EPOCHS epochs)"
+[ -f results/checkpoints/rtls-scratch-fast/metrics.json ] || foresight train dataset=rtls dataset.data_dir="$DATA" dataset.limit_scenes=$LIMIT train=fast train.epochs=$SCRATCH_EPOCHS train.lr_step=40 run_name=rtls-scratch-fast \
   mlflow.experiment=social-stgcnn-rtls threads=1 eval.seeds=[0] > results/logs/rtls-scratch.log 2>&1
 echo "[$(date +%H:%M:%S)] evaluate-rtls"
 foresight evaluate-rtls --data-dir "$DATA" --every "$EVERY" --seeds 0,1,2 \

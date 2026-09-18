@@ -180,12 +180,39 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
     history: list[dict[str, float]] = []
     best_val, best_epoch = float("inf"), -1
     best_path = out_dir / "best.pth"
-    with mlflow.start_run(run_name=run_name) as run:
-        mlflow.log_params({k: str(v)[:250] for k, v in flat.items()})
-        mlflow.set_tags(
-            {"dataset": cfg.dataset.name, "mode": cfg.train.mode, "params": model.num_parameters()}
+    last_path = out_dir / "last.pth"
+    start_epoch, resume_run_id = 0, None
+    if bool(cfg.get("resume", True)) and last_path.exists():
+        # 재시작 안전성: 컨테이너가 죽어도 마지막 epoch 부터 같은 MLflow run 에 이어 붙는다
+        # (모델·옵티마이저·스케줄러·RNG·기록을 복원하므로 처음부터 돌린 것과 같은 궤적을 따른다).
+        ck = torch.load(last_path, map_location="cpu", weights_only=False)
+        model.load_state_dict(ck["model_state"])
+        optimizer.load_state_dict(ck["optimizer_state"])
+        scheduler.load_state_dict(ck["scheduler_state"])
+        rng.bit_generator.state = ck["numpy_rng"]
+        torch.set_rng_state(ck["torch_rng"])
+        history, best_val, best_epoch = ck["history"], ck["best_val"], ck["best_epoch"]
+        start_epoch, resume_run_id = int(ck["epoch"]) + 1, ck.get("mlflow_run_id")
+        log.info(
+            "resume from %s: epoch %d, best val %.4f @%d",
+            last_path,
+            start_epoch,
+            best_val,
+            best_epoch,
         )
-        for epoch in range(int(cfg.train.epochs)):
+    with mlflow.start_run(
+        run_id=resume_run_id, run_name=None if resume_run_id else run_name
+    ) as run:
+        if not resume_run_id:
+            mlflow.log_params({k: str(v)[:250] for k, v in flat.items()})
+            mlflow.set_tags(
+                {
+                    "dataset": cfg.dataset.name,
+                    "mode": cfg.train.mode,
+                    "params": model.num_parameters(),
+                }
+            )
+        for epoch in range(start_epoch, int(cfg.train.epochs)):
             with Timer() as t_ep:
                 tr = run_epoch(model, ds_train, cfg, optimizer, rng, epoch)
                 va = (
@@ -223,6 +250,21 @@ def run_training(cfg: DictConfig) -> dict[str, Any]:
                 lr,
                 t_ep.elapsed,
                 " *" if improved else "",
+            )
+            torch.save(
+                {
+                    "model_state": model.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                    "scheduler_state": scheduler.state_dict(),
+                    "numpy_rng": rng.bit_generator.state,
+                    "torch_rng": torch.get_rng_state(),
+                    "history": history,
+                    "best_val": best_val,
+                    "best_epoch": best_epoch,
+                    "epoch": epoch,
+                    "mlflow_run_id": run.info.run_id,
+                },
+                last_path,
             )
         (out_dir / "history.json").write_text(json.dumps(history, indent=1), encoding="utf-8")
         mlflow.log_artifact(str(out_dir / "history.json"))

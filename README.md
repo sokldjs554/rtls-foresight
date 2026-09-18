@@ -56,9 +56,56 @@ Social-STGCNN(CVPR 2020)을 PyTorch 로 처음부터 구현해 ETH/UCY 5개 분�
 세 열을 같이 읽어야 한다. **논문**은 저자가 보고한 값, **공식 ckpt 재평가**는 저자의 가중치를 이 저장소의 평가기로 돌린 값,
 **우리 학습**은 처음부터 구현한 코드로 CPU 에서 250 epoch 학습한 값이다. 자세한 논의와 ablation: [`docs/paper_reproduction.md`](docs/paper_reproduction.md)
 
-### 4.2 평가 프로토콜에 따른 차이 · 4.3 대규모 처리 · 4.4 추론 최적화 · 4.5 충돌 경보
+### 4.2 같은 모델, 다른 프로토콜 — 숫자가 어떻게 달라지는가
 
-(각 절은 해당 문서에서 수치를 동기화한다 — `docs/evaluation_methodology.md`, `docs/data_pipeline.md`, `docs/inference_optimization.md`, `docs/serving_streaming.md`)
+5분할 평균 ADE/FDE (m). best-of-20 은 정답을 알고 고르는 **오라클** 지표이고, 결정적(μ)은 서비스가 실제로 내놓는 한 점이다.
+
+| 프로토콜 | 우리 학습 | 등속 모델(CVM) |
+|---|---|---|
+| per-agent best-of-20 (논문) | <!-- num:reproduction.ours.avg.best_of_k_per_agent.ade -->0.50<!-- /num --> / <!-- num:reproduction.ours.avg.best_of_k_per_agent.fde -->0.81<!-- /num --> | CVM-S(20): <!-- num:reproduction.ours.avg.cvm_sampled.ade -->0.40<!-- /num --> / <!-- num:reproduction.ours.avg.cvm_sampled.fde -->0.85<!-- /num --> |
+| joint best-of-20 (장면 단위 한 샘플) | <!-- num:reproduction.ours.avg.best_of_k_joint.ade -->0.70<!-- /num --> / <!-- num:reproduction.ours.avg.best_of_k_joint.fde -->1.31<!-- /num --> | – |
+| 결정적 μ (샘플 없음) | <!-- num:reproduction.ours.avg.deterministic.ade -->0.74<!-- /num --> / <!-- num:reproduction.ours.avg.deterministic.fde -->1.45<!-- /num --> | <!-- num:reproduction.ours.avg.cvm.ade -->0.52<!-- /num --> / <!-- num:reproduction.ours.avg.cvm.fde -->1.14<!-- /num --> |
+
+결정적 예측만 보면 학습 모델이 등속 모델보다 **나쁘다**. 모델의 가치는 분포에 있고, 그래서 충돌 위험은 μ 가 아니라 같은 미래(joint sample)의
+최소 거리로 계산한다. 논의: [`docs/evaluation_methodology.md`](docs/evaluation_methodology.md)
+
+### 4.3 대규모 RTLS 스트림 처리 (합성, 200 태그 × 12 시간 × 10 Hz)
+
+| 항목 | 값 |
+|---|---|
+| 원시 행 | <!-- num:data_pipeline/full_pipeline_meta.rows_raw:,d -->85,423,957<!-- /num --> (1.6 GB Parquet, 시간 파티션) |
+| 2.5 Hz 프레임 → 장면 | <!-- num:data_pipeline/full_pipeline_meta.rows_frames:,d -->21,576,189<!-- /num --> 프레임 → train/val/test <!-- num:data_pipeline/full_pipeline_meta.scenes.train:,d -->443,180<!-- /num --> / <!-- num:data_pipeline/full_pipeline_meta.scenes.val:,d -->378,260<!-- /num --> / <!-- num:data_pipeline/full_pipeline_meta.scenes.test:,d -->378,943<!-- /num --> 장면 |
+| 벽시계 · 처리량 | <!-- num:data_pipeline/full_pipeline_meta.timings.total:.0f -->92<!-- /num --> s · 약 <!-- num:data_pipeline/full_pipeline_meta.rows_per_s:,.0f -->933,275<!-- /num --> rows/s (Polars streaming, 2 스레드) |
+| 피크 RSS | <!-- num:data_pipeline/full_pipeline_meta.peak_rss_gb:.2f -->2.24<!-- /num --> GB (상한 4 GB) — 처음 설계는 10.9 GB 로 OOM, 시간 파티션 단위로 바꿔 해결 |
+
+생성기·품질 규칙·리샘플·윈도우와 pandas/DuckDB 비교: [`docs/data_pipeline.md`](docs/data_pipeline.md)
+
+### 4.4 추론 최적화 (CPU 1 스레드, 전처리+모델+20 샘플 후처리 포함, N=20 장면)
+
+| 백엔드 | p50 (ms) | p95 (ms) | 처리량 (장면/s) |
+|---|---|---|---|
+| PyTorch eager | <!-- num:benchmark.backends.torch-eager/t1.20.k20.p50_ms -->2.32<!-- /num --> | <!-- num:benchmark.backends.torch-eager/t1.20.k20.p95_ms -->3.16<!-- /num --> | <!-- num:benchmark.backends.torch-eager/t1.20.k20.throughput_scenes_per_s:,.0f -->413<!-- /num --> |
+| torch.compile | <!-- num:benchmark.backends.torch-compile/t1.20.k20.p50_ms -->1.88<!-- /num --> | <!-- num:benchmark.backends.torch-compile/t1.20.k20.p95_ms -->1.98<!-- /num --> | <!-- num:benchmark.backends.torch-compile/t1.20.k20.throughput_scenes_per_s:,.0f -->528<!-- /num --> |
+| **ONNX Runtime fp32** | **<!-- num:benchmark.backends.onnx-fp32/t1.20.k20.p50_ms -->1.40<!-- /num -->** | <!-- num:benchmark.backends.onnx-fp32/t1.20.k20.p95_ms -->1.49<!-- /num --> | <!-- num:benchmark.backends.onnx-fp32/t1.20.k20.throughput_scenes_per_s:,.0f -->712<!-- /num --> |
+| ONNX Runtime INT8 (정적, TXP-CNN) | <!-- num:benchmark.backends.onnx-int8/t1.20.k20.p50_ms -->1.45<!-- /num --> | <!-- num:benchmark.backends.onnx-int8/t1.20.k20.p95_ms -->1.55<!-- /num --> | <!-- num:benchmark.backends.onnx-int8/t1.20.k20.throughput_scenes_per_s:,.0f -->683<!-- /num --> |
+
+- 전처리 벡터화: 공식 networkx 경로 대비 **×<!-- num:benchmark.preprocess.20.speedup:.0f -->100<!-- /num -->** (N=20), 결과 차이 < 1e-6.
+- INT8 은 7.6K 파라미터 모델에서 **속도 이득이 없다** (Q/DQ 오버헤드). 정확도 손실 ADE +0.04(TXP-CNN 만) ~ +0.09(전체).
+- 토치 4 스레드는 OpenMP 스핀 대기로 100배 느려진다 → 서빙은 1 스레드 + 프로세스 확장. 논문 주장 0.002 s/frame 대비 CPU 에서 N≤20 이면 2 ms 이내.
+- 자세한 표·그림: [`docs/inference_optimization.md`](docs/inference_optimization.md) · 서빙 API/스트리밍/부하테스트: [`docs/serving_streaming.md`](docs/serving_streaming.md)
+
+### 4.5 RTLS 전이와 충돌 경보 (합성 스트림 테스트 1.8 h)
+
+<!-- RTLS_TRANSFER_TABLE:START -->
+(`foresight evaluate-rtls` 가 채운다)
+<!-- RTLS_TRANSFER_TABLE:END -->
+
+<!-- COLLISION_TABLE:START -->
+(`foresight evaluate-rtls` 가 채운다)
+<!-- COLLISION_TABLE:END -->
+
+양성 = 4.8 s 안에 작업자-차량 거리 < 1.0 m 인 쌍. 지오펜스(현재 거리)는 "이미 가까운" 쌍을 정확히 잡지만 선행시간이 0.4 s 안팎이고,
+분포 기반 위험 점수는 선행시간을 산다. 정의·경보 정책·해석: [`docs/serving_streaming.md`](docs/serving_streaming.md) §3–4
 
 ## 5. 아키텍처
 

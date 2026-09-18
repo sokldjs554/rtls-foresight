@@ -1,4 +1,4 @@
-# CLI / 모듈 계약 (병렬 작업용 내부 문서)
+# CLI 와 모듈 계약
 
 패키지 `foresight` (src/foresight). 진입점 `foresight` (typer). 모든 명령은 `python -m foresight.cli ...` 로도 동작.
 
@@ -6,14 +6,15 @@
 |---|---|---|
 | `foresight download` | ETH/UCY 원본 다운로드 + sha256 검증 | `--raw-dir data/raw/ethucy` |
 | `foresight prepare` | 원본 → 장면 npz (`data/processed/ethucy/<split>/<subset>.npz`) + long parquet | `--raw-dir`, `--out-dir`, `--splits eth,hotel,...` |
-| `foresight simulate` | 합성 RTLS 스트림 생성 (파티션 Parquet) | `--out-dir data/rtls/raw`, `--hours`, `--tags`, `--seed`, `--profile {smoke,small,full}` |
-| `foresight prepare-rtls` | RTLS Parquet → 2.5 Hz 리샘플 → 장면 npz (`data/processed/rtls/{train,val,test}.npz`) | `--in-dir`, `--out-dir` |
+| `foresight simulate` | 합성 RTLS 스트림 생성 (파티션 Parquet, 기본 `data/rtls/<profile>/raw`) | `--profile {smoke,small,full}`, `--hours`, `--tags`, `--seed`, `--out-dir` |
+| `foresight prepare-rtls` | RTLS Parquet → 품질 필터 → 2.5 Hz 리샘플 → 구역별 장면 npz (`data/processed/rtls/{train,val,test}.npz`) | `--in-dir data/rtls/<profile>/raw`, `--out-dir`, `--train-skip`, `--quality-min`, `--smoothing` |
 | `foresight train` | Hydra 학습 (`configs/`), MLflow 로깅 | `dataset=eth train=paper seed=0 ...` (Hydra override) |
 | `foresight evaluate` | 체크포인트 평가, 재현표 JSON/MD | `--ckpt-dir results/checkpoints`, `--out results/reproduction.json` |
 | `foresight export` | PyTorch → ONNX (+INT8) | `--ckpt`, `--out artifacts/onnx/` |
 | `foresight benchmark` | 추론 벤치마크 (eager/compile/ORT/INT8) | `--out results/benchmark.json` |
 | `foresight serve` | FastAPI 서버 | `--host --port --backend {torch,onnx,onnx-int8}` |
-| `foresight stream` | 스트리밍 소비자 (파일 재생 / Kafka) | `--source {replay,kafka}`, `--bootstrap`, `--topic` |
+| `foresight stream` | 스트리밍 소비자 (파일 재생 / Kafka) | `--source {replay,kafka}`, `--sink {stdout,file,kafka}`, `--bootstrap`, `--topic`, `--replay-file`, `--speed`, `--max-seconds` |
+| `foresight evaluate-rtls` | RTLS 테스트에서 궤적 지표 + 충돌 경보 품질 | `--ckpts a.pth,b.pth`, `--names`, `--data-dir`, `--every`, `--d-safe` |
 
 ## 데이터 포맷
 - **SceneSet npz** (`foresight.data.ethucy.SceneSet`): `pos (A, 20, 2)` float64 절대좌표(m), `scene_index (S, 2)`, `files`, `starts`, `obs_len=8`, `pred_len=12`, `agent_type (A,)` int8 (0 보행자/작업자, 1 차량).

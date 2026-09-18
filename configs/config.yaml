@@ -10,6 +10,7 @@ threads: 1            # 분할 5개를 프로세스 병렬로 돌리기 위한 �
 out_dir: results/checkpoints
 run_name: null        # null 이면 "<dataset>-<train>-seed<seed>"
 init_from: null       # 미세조정: 이 체크포인트에서 가중치를 읽고 시작
+resume: true          # out_dir 에 last.pth 가 있으면 그 epoch 부터 같은 MLflow run 에 이어서 (컨테이너 재시작 대비)
 
 mlflow:
   tracking_uri: ${oc.env:MLFLOW_TRACKING_URI,sqlite:///mlflow.db}   # MLflow 3: 파일 스토어는 유지보수 모드. SQLite 면 모델 레지스트리도 된다.

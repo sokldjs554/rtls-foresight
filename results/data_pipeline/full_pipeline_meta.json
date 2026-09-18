@@ -1,0 +1,56 @@
+{
+ "out_dir": "/home/user/rtls-foresight/data/rtls/full/processed",
+ "rows_raw": 85423957,
+ "rows_clean": 85057196,
+ "rows_frames": 21576189,
+ "scenes": {
+  "train": 443180,
+  "val": 378260,
+  "test": 378943
+ },
+ "agents": {
+  "train": 3032179,
+  "val": 2596350,
+  "test": 2595497
+ },
+ "timings": {
+  "resample_sink": 45.87671678599963,
+  "window_index": 6.53326358600043,
+  "sceneset": 38.961851109000236,
+  "total": 91.53136708799957,
+  "stats": 29.90541351200045
+ },
+ "peak_rss_mb": 2291.953125,
+ "ru_maxrss_mb": 2292.4140625,
+ "config": {
+  "quality_min": 30,
+  "bin_ms": 400,
+  "obs_len": 8,
+  "pred_len": 12,
+  "skip_train": 4,
+  "skip_eval": 1,
+  "min_agents": 2,
+  "smoothing": "none",
+  "ema_alpha": 0.5,
+  "split_fracs": [
+   0.7,
+   0.15,
+   0.15
+  ],
+  "min_bin_samples": 1
+ },
+ "split_bounds": [
+  4352400000,
+  4352475600,
+  4352491800,
+  4352507999
+ ],
+ "frames_dir": "/home/user/rtls-foresight/data/rtls/full/processed/frames_2p5hz",
+ "rss_stage_mb": {
+  "resample_sink": 2292.9,
+  "window_index": 1017.7,
+  "sceneset": 2034.2
+ },
+ "rows_per_s": 933275.2226662602,
+ "peak_rss_gb": 2.2382354736328125
+}

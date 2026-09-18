@@ -1,0 +1,5 @@
+00:21:19 INFO foresight.train.train: data: train 2785 / val 660 / test 70 scenes (0.9s)
+00:21:19 INFO foresight.train.train: model params: 7563
+00:21:30 INFO foresight.train.train: epoch   0 train 1.7722 val 1.6947 lr 0.01 (10.6s) *
+00:21:41 INFO foresight.train.train: epoch   1 train 1.4433 val 1.4378 lr 0.01 (10.6s) *
+00:21:52 INFO foresight.train.train: epoch   2 train 1.1238 val 1.6195 lr 0.01 (10.8s)

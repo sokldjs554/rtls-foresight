@@ -10,11 +10,12 @@ def test_marker_sync_and_check(tmp_path: Path, monkeypatch) -> None:
     results = tmp_path / "results"
     results.mkdir()
     (results / "demo.json").write_text(
-        json.dumps({"a": {"b": 0.4567, "n": 12345, "list": [1, 2.5]}}), encoding="utf-8"
+        json.dumps({"a": {"b": 0.4567, "n": 12345, "list": [1, 2.5], "x/y+z": {"p": 3.14159}}}),
+        encoding="utf-8",
     )
     doc = tmp_path / "README.md"
     doc.write_text(
-        "x <!-- num:demo.a.b -->0.00<!-- /num --> y <!-- num:demo.a.n:,d -->0<!-- /num --> z <!-- num:demo.a.list.1:.1f -->9<!-- /num -->",
+        "x <!-- num:demo.a.b -->0.00<!-- /num --> y <!-- num:demo.a.n:,d -->0<!-- /num --> z <!-- num:demo.a.list.1:.1f -->9<!-- /num --> w <!-- num:demo.a.x/y+z.p:.3f -->0<!-- /num -->",
         encoding="utf-8",
     )
     monkeypatch.setattr(crn, "RESULTS", results)
@@ -24,7 +25,7 @@ def test_marker_sync_and_check(tmp_path: Path, monkeypatch) -> None:
     assert crn.process(check=False) == 0
     assert (
         doc.read_text(encoding="utf-8")
-        == "x <!-- num:demo.a.b -->0.46<!-- /num --> y <!-- num:demo.a.n:,d -->12,345<!-- /num --> z <!-- num:demo.a.list.1:.1f -->2.5<!-- /num -->"
+        == "x <!-- num:demo.a.b -->0.46<!-- /num --> y <!-- num:demo.a.n:,d -->12,345<!-- /num --> z <!-- num:demo.a.list.1:.1f -->2.5<!-- /num --> w <!-- num:demo.a.x/y+z.p:.3f -->3.142<!-- /num -->"
     )
     assert crn.process(check=True) == 0
 

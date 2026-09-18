@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
 TARGETS = [ROOT / "README.md", *sorted((ROOT / "docs").glob("**/*.md"))]
-MARK = re.compile(r"<!-- num:([A-Za-z0-9_.\-\[\]]+?)(?::([^ >]+))? -->(.*?)<!-- /num -->", re.S)
+MARK = re.compile(r"<!-- num:([A-Za-z0-9_.\-/+\[\]]+?)(?::([^ >]+))? -->(.*?)<!-- /num -->", re.S)
 
 _cache: dict[str, dict] = {}
 
